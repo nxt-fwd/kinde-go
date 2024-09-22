@@ -11,7 +11,7 @@ type API struct {
 	ID              string        `json:"id"`
 	Name            string        `json:"name"`
 	Audience        string        `json:"audience"`
-	IsManagementApi bool          `json:"is_management_api"`
+	IsManagementAPI bool          `json:"is_management_api"`
 	Applications    []Application `json:"applications,omitempty"`
 }
 
