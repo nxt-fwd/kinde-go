@@ -44,76 +44,6 @@ func New(ctx context.Context, options *ClientOptions) *Client {
 	return client
 }
 
-type KindeErrors []KindeError
-
-func (errs KindeErrors) Error() string {
-	messages := make([]string, 0, len(errs))
-	for _, err := range errs {
-		messages = append(messages, err.Error())
-	}
-
-	return strings.Join(messages, ", ")
-}
-
-func (errs KindeErrors) Has(code string) bool {
-	for _, err := range errs {
-		if err.Code == code {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (errs *KindeErrors) UnmarshalJSON(data []byte) error {
-	rawErrs := gjson.GetBytes(data, "errors")
-
-	// its possible the kinde api may return an array or a single object
-	// we need to handle both
-
-	if rawErrs.IsArray() {
-		var target struct {
-			Errors []KindeError `json:"errors"`
-		}
-
-		if err := json.Unmarshal(data, &target); err != nil {
-			return fmt.Errorf("failed to parse error list: %s", err)
-		}
-
-		*errs = target.Errors
-		return nil
-	}
-
-	var target struct {
-		Errors KindeError `json:"errors"`
-	}
-
-	if err := json.Unmarshal(data, &target); err != nil {
-		return fmt.Errorf("failed to parse error: %s", err)
-	}
-
-	*errs = KindeErrors{target.Errors}
-	return nil
-}
-
-type KindeError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-}
-
-func (e KindeError) Error() string {
-	builder := strings.Builder{}
-	builder.WriteString(e.Code)
-	builder.WriteString(": ")
-	if e.Message != "" {
-		builder.WriteString(e.Message)
-	} else {
-		builder.WriteString("N/A")
-	}
-
-	return builder.String()
-}
-
 func (c *Client) NewRequest(ctx context.Context, method, path string, query url.Values, payload any) (*http.Request, error) {
 	endpoint := strings.Builder{}
 	endpoint.WriteString(c.domain)
@@ -132,7 +62,11 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, query url.
 	if payload != nil {
 		raw, err := json.Marshal(payload)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal request payload: %s", err)
+			return nil, RequestError{
+				Method: method,
+				Path:   path,
+				Err:    fmt.Errorf("failed to marshal request payload: %w", err),
+			}
 		}
 
 		c.logger.Logf("[Client.NewRequest] %s %s - request payload: %s\n", method, path, string(raw))
@@ -141,7 +75,11 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, query url.
 
 	req, err := http.NewRequestWithContext(ctx, method, endpoint.String(), encoded)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %s", err)
+		return nil, RequestError{
+			Method: method,
+			Path:   path,
+			Err:    fmt.Errorf("failed to create request: %w", err),
+		}
 	}
 
 	c.logger.Logf("[Client.NewRequest] %s %s - request payload content length: %d\n", method, path, req.ContentLength)
@@ -152,7 +90,12 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, query url.
 func (c *Client) DoRequest(req *http.Request, result any) error {
 	res, err := c.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to execute request: %s", err)
+		return RequestError{
+			Method:     req.Method,
+			Path:       req.URL.Path,
+			StatusCode: res.StatusCode,
+			Err:        fmt.Errorf("failed to execute request: %w", err),
+		}
 	}
 
 	c.logger.Logf("[Client.DoRequest] %s %s - response status: %d\n", req.Method, req.URL.Path, res.StatusCode)
@@ -160,7 +103,12 @@ func (c *Client) DoRequest(req *http.Request, result any) error {
 	defer res.Body.Close()
 	raw, err := io.ReadAll(res.Body)
 	if err != nil {
-		return fmt.Errorf("failed to read response body: %s", err)
+		return RequestError{
+			Method:     req.Method,
+			Path:       req.URL.Path,
+			StatusCode: res.StatusCode,
+			Err:        fmt.Errorf("failed to read response body: %w", err),
+		}
 	}
 
 	c.logger.Logf("[Client.DoRequest] %s %s - response body: %s\n", req.Method, req.URL.Path, string(raw))
@@ -168,21 +116,43 @@ func (c *Client) DoRequest(req *http.Request, result any) error {
 	var errs KindeErrors
 	if rawErrs := gjson.GetBytes(raw, "errors"); rawErrs.Exists() {
 		if err := json.Unmarshal(raw, &errs); err != nil {
-			return fmt.Errorf("failed to parse error response body: %s", err)
+			return RequestError{
+				Method:     req.Method,
+				Path:       req.URL.Path,
+				StatusCode: res.StatusCode,
+				Err:        fmt.Errorf("failed to parse error response body: %w", err),
+			}
 		}
 	}
 
 	if len(errs) > 0 {
-		return fmt.Errorf("request failed: %s", errs)
+		return RequestError{
+			Method:     req.Method,
+			Path:       req.URL.Path,
+			StatusCode: res.StatusCode,
+			Err:        fmt.Errorf("request failed: %w", errs),
+		}
 	}
 
 	// probably wont happen but just in case
 	if res.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("unexpected status code %d: %s", res.StatusCode, raw)
+		return RequestError{
+			Method:     req.Method,
+			Path:       req.URL.Path,
+			StatusCode: res.StatusCode,
+			Err:        fmt.Errorf("unexpected status code %d: %s", res.StatusCode, string(raw)),
+		}
 	}
 
-	if err := json.Unmarshal(raw, result); err != nil {
-		return fmt.Errorf("failed to parse response body: %s", err)
+	if result != nil {
+		if err := json.Unmarshal(raw, result); err != nil {
+			return RequestError{
+				Method:     req.Method,
+				Path:       req.URL.Path,
+				StatusCode: res.StatusCode,
+				Err:        fmt.Errorf("failed to parse response body: %w", err),
+			}
+		}
 	}
 
 	return nil

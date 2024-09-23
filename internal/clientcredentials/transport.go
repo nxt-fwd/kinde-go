@@ -54,14 +54,14 @@ func (t *OAuth2Transport) RefreshToken(ctx context.Context) error {
 	t.Logger.Logf("[OAuth2Transport.RefreshToken] %s - %s\n", http.MethodPost, tokenEndpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenEndpoint, encodedBody)
 	if err != nil {
-		return fmt.Errorf("failed to create request: %s", err)
+		return fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("content-type", "application/x-www-form-urlencoded")
 
 	res, err := t.Transport.RoundTrip(req)
 	if err != nil {
-		return fmt.Errorf("failed to round trip request: %s", err)
+		return fmt.Errorf("failed to round trip request: %w", err)
 	}
 
 	t.Logger.Logf("[OAuth2Transport.RefreshToken] %s - %s - response status: %d\n", http.MethodPost, tokenEndpoint, res.StatusCode)
@@ -69,7 +69,7 @@ func (t *OAuth2Transport) RefreshToken(ctx context.Context) error {
 	defer res.Body.Close()
 	raw, err := io.ReadAll(res.Body)
 	if err != nil {
-		return fmt.Errorf("failed to read response body: %s", err)
+		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -79,7 +79,7 @@ func (t *OAuth2Transport) RefreshToken(ctx context.Context) error {
 
 	var response TokenExchangeResponse
 	if err := json.Unmarshal(raw, &response); err != nil {
-		return fmt.Errorf("failed to parse response body: %s", err)
+		return fmt.Errorf("failed to parse response body: %w", err)
 	}
 
 	if response.TokenType != "bearer" {
@@ -111,7 +111,7 @@ func (t *OAuth2Transport) GetToken(ctx context.Context) (string, error) {
 	if expired || missing {
 		t.Logger.Logf("[Oauth2Transport.GetToken] refreshing token, expired: %v, missing: %v\n", expired, missing)
 		if err := t.RefreshToken(ctx); err != nil {
-			return "", fmt.Errorf("failed to retrieve access token: %s", err)
+			return "", fmt.Errorf("failed to retrieve access token: %w", err)
 		}
 	}
 

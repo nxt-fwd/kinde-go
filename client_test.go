@@ -11,35 +11,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func defaultScenario(t *testing.T) (*kinde.Client, *testutil.TestServer) {
-	t.Helper()
-
-	config := testutil.DefaultTestServerConfig()
-	server := testutil.NewTestServer(t, config)
-
-	client := kinde.New(
-		context.TODO(),
-		kinde.NewClientOptions().
-			WithDomain(server.Server.URL).
-			WithAudience(config.Audience).
-			WithClientID(config.ClientID).
-			WithClientSecret(config.ClientSecret).
-			WithLogger(testutil.NewTestLogger(t)),
-	)
-	require.NotNil(t, client)
-
-	return client, server
-}
-
 func TestClientConfigWithEnv(t *testing.T) {
-	testConfig := testutil.DefaultTestServerConfig()
-	testServer := testutil.NewTestServer(t, testConfig)
+	testServer := testutil.NewTestServer(t, nil)
 	t.Cleanup(testServer.Server.Close)
 
 	t.Setenv("KINDE_DOMAIN", testServer.Server.URL)
-	t.Setenv("KINDE_AUDIENCE", testConfig.Audience)
-	t.Setenv("KINDE_CLIENT_ID", testConfig.ClientID)
-	t.Setenv("KINDE_CLIENT_SECRET", testConfig.ClientSecret)
+	t.Setenv("KINDE_AUDIENCE", testServer.Config.Audience)
+	t.Setenv("KINDE_CLIENT_ID", testServer.Config.ClientID)
+	t.Setenv("KINDE_CLIENT_SECRET", testServer.Config.ClientSecret)
 
 	client := kinde.New(context.TODO(), nil)
 	require.NotNil(t, client)
@@ -59,17 +38,16 @@ func TestClientConfigWithEnv(t *testing.T) {
 }
 
 func TestClientConfigWithOptions(t *testing.T) {
-	testConfig := testutil.DefaultTestServerConfig()
-	testServer := testutil.NewTestServer(t, testConfig)
+	testServer := testutil.NewTestServer(t, nil)
 	t.Cleanup(testServer.Server.Close)
 
 	client := kinde.New(
 		context.TODO(),
 		kinde.NewClientOptions().
 			WithDomain(testServer.Server.URL).
-			WithAudience(testConfig.Audience).
-			WithClientID(testConfig.ClientID).
-			WithClientSecret(testConfig.ClientSecret),
+			WithAudience(testServer.Config.Audience).
+			WithClientID(testServer.Config.ClientID).
+			WithClientSecret(testServer.Config.ClientSecret),
 	)
 	require.NotNil(t, client)
 

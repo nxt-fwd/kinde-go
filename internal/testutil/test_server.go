@@ -20,8 +20,8 @@ type TestServerConfig struct {
 	Scopes       []string
 }
 
-func DefaultTestServerConfig() TestServerConfig {
-	return TestServerConfig{
+func DefaultTestServerConfig() *TestServerConfig {
+	return &TestServerConfig{
 		Audience:     "http://test",
 		ClientID:     "123",
 		ClientSecret: "456",
@@ -34,40 +34,49 @@ func DefaultTestServerConfig() TestServerConfig {
 type TestServer struct {
 	mux       *http.ServeMux
 	Server    *httptest.Server
-	Config    TestServerConfig
+	Config    *TestServerConfig
 	CallCount CallCount
 }
 
 type TestServerHandler func(header http.Header, body []byte) (int, string)
 
-func NewTestServer(t *testing.T, config TestServerConfig) *TestServer {
+func NewTestServer(t *testing.T, config *TestServerConfig) *TestServer {
 	t.Helper()
 
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
 
-	helper := &TestServer{
+	testServer := &TestServer{
 		mux:    mux,
 		Server: server,
 		Config: config,
 	}
 
-	helper.Handle(t, http.MethodPost, "/oauth2/token", func(header http.Header, body []byte) (int, string) {
+	if testServer.Config == nil {
+		testServer.Config = DefaultTestServerConfig()
+	}
+
+	testServer.Handle(t, http.MethodPost, "/oauth2/token", func(header http.Header, body []byte) (int, string) {
 		payload, err := url.ParseQuery(string(body))
 		assert.NoError(t, err)
 
-		assert.Equal(t, config.Audience, payload.Get("audience"))
-		assert.Equal(t, config.ClientID, payload.Get("client_id"))
-		assert.Equal(t, config.ClientSecret, payload.Get("client_secret"))
-		assert.Equal(t, config.GrantType, payload.Get("grant_type"))
+		assert.Equal(t, testServer.Config.Audience, payload.Get("audience"))
+		assert.Equal(t, testServer.Config.ClientID, payload.Get("client_id"))
+		assert.Equal(t, testServer.Config.ClientSecret, payload.Get("client_secret"))
+		assert.Equal(t, testServer.Config.GrantType, payload.Get("grant_type"))
 
-		response := fmt.Sprintf(`{"access_token":"%s","token_type":"bearer"}`, config.AccessToken)
+		response := fmt.Sprintf(`{"access_token":"%s","token_type":"bearer"}`, testServer.Config.AccessToken)
 		return http.StatusOK, response
 	})
 
-	helper.HandleAuthenticated(t, "", "/", nil)
+	testServer.HandleAuthenticated(t, "", "/", nil)
 
-	return helper
+	t.Setenv("KINDE_DOMAIN", testServer.Server.URL)
+	t.Setenv("KINDE_AUDIENCE", testServer.Config.Audience)
+	t.Setenv("KINDE_CLIENT_ID", testServer.Config.ClientID)
+	t.Setenv("KINDE_CLIENT_SECRET", testServer.Config.ClientSecret)
+
+	return testServer
 }
 
 func (s *TestServer) Handle(t *testing.T, method, path string, handler TestServerHandler) {

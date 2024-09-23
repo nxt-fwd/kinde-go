@@ -30,7 +30,7 @@ var (
 func init() {
 	var values e2eValues
 	if err := json.Unmarshal(e2eRaw, &values); err != nil {
-		panic(fmt.Errorf("failed to parse e2e credentials: %s", err))
+		panic(fmt.Errorf("failed to parse e2e credentials: %w", err))
 	}
 
 	Domain = values.Domain
