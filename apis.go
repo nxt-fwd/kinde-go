@@ -36,7 +36,7 @@ type ListAPIResponse struct {
 // https://kinde.com/api/docs/#get-apis
 //
 // todo: pagination
-func (c *Client) GetAPIs(ctx context.Context) ([]API, error) {
+func (c *Client) ListAPIs(ctx context.Context) ([]API, error) {
 	endpoint := "/api/v1/apis"
 	req, err := c.NewRequest(ctx, http.MethodGet, endpoint, nil, nil)
 	if err != nil {

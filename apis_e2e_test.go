@@ -14,16 +14,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestE2EGetAPIs(t *testing.T) {
+func TestE2EListAPIs(t *testing.T) {
 	client := defaultE2EClient(t)
-	res, err := client.GetAPIs(context.TODO())
+	res, err := client.ListAPIs(context.TODO())
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
 func TestE2EGetAPI(t *testing.T) {
 	client := defaultE2EClient(t)
-	res, err := client.GetAPIs(context.TODO())
+	res, err := client.ListAPIs(context.TODO())
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }

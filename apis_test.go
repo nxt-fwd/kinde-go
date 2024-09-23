@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetAPIs(t *testing.T) {
+func TestListAPIs(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 	client := kinde.New(context.TODO(), nil)
-	_, _ = client.GetAPIs(context.TODO())
+	_, _ = client.ListAPIs(context.TODO())
 	assert.Equal(t, 1, testServer.CallCount.Get(http.MethodGet, "/api/v1/apis"))
 }
 
