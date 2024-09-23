@@ -30,15 +30,9 @@ func TestE2EGetAPI(t *testing.T) {
 
 func TestE2ECreateGetDeleteAPI(t *testing.T) {
 	client := defaultE2EClient(t)
-	// client, server := defaultScenario(t)
-	// server.HandleAuthenticated(t, http.MethodPost, "/api/v1/apis", func(header http.Header, body []byte) (int, string) {
-	// 	t.Logf("create api: %s\n", string(body))
-	// 	return http.StatusOK, `{"code":"OK","api":{"id":"foo"}}`
-	// })
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
 
-	temp := fmt.Sprintf("test-%d", time.Now().UnixMilli())
-
-	res, err := client.CreateAPI(context.TODO(), kinde.CreateAPIParams{Name: temp, Audience: temp})
+	res, err := client.CreateAPI(context.TODO(), kinde.CreateAPIParams{Name: tempID, Audience: tempID})
 	assert.NoError(t, err)
 	require.NotNil(t, res)
 	require.NotEmpty(t, res.ID)
@@ -48,6 +42,8 @@ func TestE2ECreateGetDeleteAPI(t *testing.T) {
 	res, err = client.GetAPI(context.TODO(), kinde.GetAPIParams{ID: res.ID})
 	assert.NoError(t, err)
 	require.NotNil(t, res)
+
+	t.Logf("got test api: %+v\n", res)
 
 	err = client.DeleteAPI(context.TODO(), kinde.DeleteAPIParams{ID: res.ID})
 	assert.NoError(t, err)

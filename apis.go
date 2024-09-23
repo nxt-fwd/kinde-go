@@ -6,6 +6,10 @@ import (
 	"net/http"
 )
 
+var (
+	ErrAPINotFound = fmt.Errorf("api not found")
+)
+
 // https://kinde.com/api/docs/#kinde-management-api-apis
 type API struct {
 	ID              string           `json:"id"`
