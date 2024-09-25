@@ -1,11 +1,11 @@
-package clientcredentials_test
+package oauth2_test
 
 import (
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/axatol/kinde-go/internal/clientcredentials"
+	"github.com/axatol/kinde-go/internal/oauth2"
 	"github.com/axatol/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,7 +14,7 @@ import (
 func TestOAuth2TransportMissingToken(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 
-	transport := clientcredentials.OAuth2Transport{
+	transport := oauth2.OAuth2Transport{
 		Domain:       testServer.Server.URL,
 		Audience:     testServer.Config.Audience,
 		ClientID:     testServer.Config.ClientID,
@@ -41,7 +41,7 @@ func TestOAuth2TransportMissingToken(t *testing.T) {
 func TestOAuth2TransportValidToken(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 
-	transport := clientcredentials.OAuth2Transport{
+	transport := oauth2.OAuth2Transport{
 		Domain:       testServer.Server.URL,
 		Audience:     testServer.Config.Audience,
 		ClientID:     testServer.Config.ClientID,
@@ -67,7 +67,7 @@ func TestOAuth2TransportValidToken(t *testing.T) {
 func TestOauth2TransportExpiredToken(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 
-	transport := clientcredentials.OAuth2Transport{
+	transport := oauth2.OAuth2Transport{
 		Domain:       testServer.Server.URL,
 		Audience:     testServer.Config.Audience,
 		ClientID:     testServer.Config.ClientID,

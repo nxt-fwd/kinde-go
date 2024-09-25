@@ -1,4 +1,4 @@
-package clientcredentials
+package oauth2
 
 import (
 	"bytes"

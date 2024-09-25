@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/axatol/kinde-go/internal/clientcredentials"
 	"github.com/axatol/kinde-go/internal/logger"
+	"github.com/axatol/kinde-go/internal/oauth2"
 	"github.com/tidwall/gjson"
 )
 
@@ -26,7 +26,7 @@ func New(ctx context.Context, options *ClientOptions) *Client {
 		options = NewClientOptions()
 	}
 
-	transport := &clientcredentials.OAuth2Transport{
+	transport := &oauth2.OAuth2Transport{
 		Domain:       options.Domain,
 		Audience:     options.Audience,
 		ClientID:     options.ClientID,
