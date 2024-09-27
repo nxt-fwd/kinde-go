@@ -22,8 +22,6 @@ type Application struct {
 	Type         ApplicationType `json:"type"`
 	ClientID     string          `json:"client_id"`
 	ClientSecret string          `json:"client_secret"`
-	LoginURI     string          `json:"login_uri"`
-	HomepageURI  string          `json:"homepage_uri"`
 }
 
 var _ enum.Enum[ApplicationType] = (*ApplicationType)(nil)
@@ -123,7 +121,7 @@ type CreateApplicationResponse struct {
 
 // https://kinde.com/api/docs/#create-application
 //
-// note: only id, client_id, and client_secret will be populated
+// note: client_secret will not be populated for spa applications
 func (c *Client) CreateApplication(ctx context.Context, params CreateApplicationParams) (*Application, error) {
 	endpoint := "/api/v1/applications"
 	req, err := c.NewRequest(ctx, http.MethodPost, endpoint, nil, params)
@@ -175,16 +173,7 @@ type UpdateApplicationParams struct {
 	HomepageURI  string   `json:"homepage_uri,omitempty"`
 }
 
-type UpdateApplicationResponse struct {
-	ID           string
-	Name         string   `json:"name"`
-	LanguageKey  string   `json:"language_key"`
-	LogoutURIs   []string `json:"logout_uris"`
-	RedirectURIs []string `json:"redirect_uris"`
-	LoginURI     string   `json:"login_uri"`
-	HomepageURI  string   `json:"homepage_uri"`
-}
-
+// https://kinde.com/api/docs/#update-application
 func (c *Client) UpdateApplication(ctx context.Context, params UpdateApplicationParams) (*Application, error) {
 	endpoint := fmt.Sprintf("/api/v1/applications/%s", params.ID)
 	req, err := c.NewRequest(ctx, http.MethodPatch, endpoint, nil, params)
@@ -192,13 +181,9 @@ func (c *Client) UpdateApplication(ctx context.Context, params UpdateApplication
 		return nil, err
 	}
 
-	var response UpdateApplicationResponse
-	if err := c.DoRequest(req, &response); err != nil {
+	if err := c.DoRequest(req, nil); err != nil {
 		return nil, err
 	}
-
-	// manually set ID because it's not returned in the response
-	response.ID = params.ID
 
 	return nil, nil
 }
@@ -207,6 +192,7 @@ type DeleteApplicationParams struct {
 	ID string
 }
 
+// https://kinde.com/api/docs/#delete-application
 func (c *Client) DeleteApplication(ctx context.Context, params DeleteApplicationParams) error {
 	endpoint := fmt.Sprintf("/api/v1/applications/%s", params.ID)
 	req, err := c.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil)
