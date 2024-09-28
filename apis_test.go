@@ -31,20 +31,20 @@ func TestCreateAPI(t *testing.T) {
 func TestGetAPI(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 	client := kinde.New(context.TODO(), nil)
-	_, _ = client.GetAPI(context.TODO(), kinde.GetAPIParams{ID: "1"})
+	_, _ = client.GetAPI(context.TODO(), "1")
 	assert.Equal(t, 1, testServer.CallCount.Get(http.MethodGet, "/api/v1/apis/1"))
 }
 
 func TestDeleteAPI(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 	client := kinde.New(context.TODO(), nil)
-	_ = client.DeleteAPI(context.TODO(), kinde.DeleteAPIParams{ID: "1"})
+	_ = client.DeleteAPI(context.TODO(), "1")
 	assert.Equal(t, 1, testServer.CallCount.Get(http.MethodDelete, "/api/v1/apis/1"))
 }
 
 func TestAuthorizeAPIApplications(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 	client := kinde.New(context.TODO(), nil)
-	_ = client.AuthorizeAPIApplications(context.TODO(), kinde.AuthorizeAPIApplicationsParams{ID: "1"})
+	_ = client.AuthorizeAPIApplications(context.TODO(), "1", kinde.AuthorizeAPIApplicationsParams{})
 	assert.Equal(t, 1, testServer.CallCount.Get(http.MethodPatch, "/api/v1/apis/1/applications"))
 }

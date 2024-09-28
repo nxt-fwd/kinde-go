@@ -81,15 +81,11 @@ func (c *Client) CreateAPI(ctx context.Context, params CreateAPIParams) (*API, e
 	return &api, nil
 }
 
-type GetAPIParams struct {
-	ID string
-}
-
 type GetAPIResponse CreateAPIResponse
 
 // https://kinde.com/api/docs/#get-api
-func (c *Client) GetAPI(ctx context.Context, params GetAPIParams) (*API, error) {
-	endpoint := fmt.Sprintf("/api/v1/apis/%s", params.ID)
+func (c *Client) GetAPI(ctx context.Context, id string) (*API, error) {
+	endpoint := fmt.Sprintf("/api/v1/apis/%s", id)
 	req, err := c.NewRequest(ctx, http.MethodGet, endpoint, nil, nil)
 	if err != nil {
 		return nil, err
@@ -103,18 +99,14 @@ func (c *Client) GetAPI(ctx context.Context, params GetAPIParams) (*API, error) 
 	return &response.API, nil
 }
 
-type DeleteAPIParams struct {
-	ID string
-}
-
 type DeleteAPIResponse struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
 // https://kinde.com/api/docs/#delete-api
-func (c *Client) DeleteAPI(ctx context.Context, params DeleteAPIParams) error {
-	endpoint := fmt.Sprintf("/api/v1/apis/%s", params.ID)
+func (c *Client) DeleteAPI(ctx context.Context, id string) error {
+	endpoint := fmt.Sprintf("/api/v1/apis/%s", id)
 	req, err := c.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil)
 	if err != nil {
 		return err
@@ -129,7 +121,6 @@ func (c *Client) DeleteAPI(ctx context.Context, params DeleteAPIParams) error {
 }
 
 type AuthorizeAPIApplicationsParams struct {
-	ID           string                     `json:"-"`
 	Applications []ApplicationAuthorization `json:"applications"`
 }
 
@@ -147,8 +138,8 @@ type AuthorizeAPIApplicationsResponse struct {
 }
 
 // https://kinde.com/api/docs/#authorize-api-applications
-func (c *Client) AuthorizeAPIApplications(ctx context.Context, params AuthorizeAPIApplicationsParams) error {
-	endpoint := fmt.Sprintf("/api/v1/apis/%s/applications", params.ID)
+func (c *Client) AuthorizeAPIApplications(ctx context.Context, id string, params AuthorizeAPIApplicationsParams) error {
+	endpoint := fmt.Sprintf("/api/v1/apis/%s/applications", id)
 	req, err := c.NewRequest(ctx, http.MethodPatch, endpoint, nil, params)
 	if err != nil {
 		return err

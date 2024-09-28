@@ -21,7 +21,7 @@ func TestE2EListApplication(t *testing.T) {
 	assert.NotNil(t, res)
 }
 
-func TestE2ECreateListDeleteApplication(t *testing.T) {
+func TestE2ECreateGetUpdateDeleteApplication(t *testing.T) {
 	client := defaultE2EClient(t)
 	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
 
@@ -30,14 +30,31 @@ func TestE2ECreateListDeleteApplication(t *testing.T) {
 	require.NotNil(t, res)
 	require.NotEmpty(t, res.ID)
 
-	t.Logf("created test application: %s\n", res.ID)
+	id := res.ID
 
-	res, err = client.GetApplication(context.TODO(), kinde.GetApplicationParams{ID: res.ID})
+	t.Logf("created test application: %s\n", id)
+
+	res, err = client.GetApplication(context.TODO(), id)
 	assert.NoError(t, err)
 	require.NotNil(t, res)
 
 	t.Logf("got test application: %+v\n", res)
 
-	err = client.DeleteApplication(context.TODO(), kinde.DeleteApplicationParams{ID: res.ID})
+	updateParams := kinde.UpdateApplicationParams{
+		Name:         tempID,
+		LoginURI:     "https://example.com",
+		HomepageURI:  "https://example.com",
+		LogoutURIs:   []string{"https://example.com"},
+		RedirectURIs: []string{"https://example.com"},
+	}
+
+	err = client.UpdateApplication(context.TODO(), id, updateParams)
 	assert.NoError(t, err)
+
+	t.Logf("updated test application: %+v\n", res)
+
+	err = client.DeleteApplication(context.TODO(), id)
+	assert.NoError(t, err)
+
+	t.Logf("deleted test application: %+v\n", res)
 }

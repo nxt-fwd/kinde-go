@@ -31,13 +31,13 @@ func TestCreateApplication(t *testing.T) {
 func TestGetApplication(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 	client := kinde.New(context.TODO(), nil)
-	_, _ = client.GetApplication(context.TODO(), kinde.GetApplicationParams{ID: "1"})
+	_, _ = client.GetApplication(context.TODO(), "1")
 	assert.Equal(t, 1, testServer.CallCount.Get(http.MethodGet, "/api/v1/applications/1"))
 }
 
 func TestDeleteApplication(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 	client := kinde.New(context.TODO(), nil)
-	_ = client.DeleteApplication(context.TODO(), kinde.DeleteApplicationParams{ID: "1"})
+	_ = client.DeleteApplication(context.TODO(), "1")
 	assert.Equal(t, 1, testServer.CallCount.Get(http.MethodDelete, "/api/v1/applications/1"))
 }
