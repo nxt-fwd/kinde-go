@@ -7,7 +7,7 @@ import (
 
 type Enum[T ~string] interface {
 	Options() []T
-	Valid(string) error
+	Valid() error
 }
 
 type InvalidEnumMemberError struct {
@@ -20,9 +20,9 @@ func (err InvalidEnumMemberError) Error() string {
 	return fmt.Sprintf("invalid enum member %s must be one of [%s]", err.Value, options)
 }
 
-func Valid[T ~string](options []T, value string) error {
-	for _, v := range options {
-		if string(v) == value {
+func Valid[T ~string](options []T, value T) error {
+	for _, option := range options {
+		if option == value {
 			return nil
 		}
 	}
@@ -34,6 +34,6 @@ func Valid[T ~string](options []T, value string) error {
 
 	return InvalidEnumMemberError{
 		Options: optionsAsString,
-		Value:   value,
+		Value:   string(value),
 	}
 }

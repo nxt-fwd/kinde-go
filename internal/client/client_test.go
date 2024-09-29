@@ -1,11 +1,11 @@
-package kinde_test
+package client_test
 
 import (
 	"context"
 	"net/http"
 	"testing"
 
-	"github.com/axatol/kinde-go"
+	"github.com/axatol/kinde-go/internal/client"
 	"github.com/axatol/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ func TestClientConfigWithEnv(t *testing.T) {
 	t.Setenv("KINDE_CLIENT_ID", testServer.Config.ClientID)
 	t.Setenv("KINDE_CLIENT_SECRET", testServer.Config.ClientSecret)
 
-	client := kinde.New(context.TODO(), nil)
+	client := client.New(context.TODO(), nil)
 	require.NotNil(t, client)
 
 	req, err := client.NewRequest(context.TODO(), http.MethodGet, "/hello", nil, nil)
@@ -41,9 +41,9 @@ func TestClientConfigWithOptions(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 	t.Cleanup(testServer.Server.Close)
 
-	client := kinde.New(
+	client := client.New(
 		context.TODO(),
-		kinde.NewClientOptions().
+		client.NewClientOptions().
 			WithDomain(testServer.Server.URL).
 			WithAudience(testServer.Config.Audience).
 			WithClientID(testServer.Config.ClientID).

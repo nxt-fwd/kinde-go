@@ -1,76 +1,48 @@
-package kinde
+package applications
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/axatol/kinde-go/internal/client"
 	"github.com/axatol/kinde-go/internal/enum"
 )
 
-var (
-	ErrApplicationTypeInvalid = errors.New("application type is invalid")
-	ErrApplicationNotFound    = errors.New("application not found")
-)
-
-// https://kinde.com/api/docs/#kinde-management-api-applications
-type Application struct {
-	ID           string          `json:"id"`
-	Name         string          `json:"name"`
-	Type         ApplicationType `json:"type"`
-	ClientID     string          `json:"client_id"`
-	ClientSecret string          `json:"client_secret"`
+type Client struct {
+	client.Client
 }
 
-var _ enum.Enum[ApplicationType] = (*ApplicationType)(nil)
-
-type ApplicationType string
-
-const (
-	ApplicationTypeRegular               ApplicationType = "reg"
-	ApplicationTypeSinglePageApplication ApplicationType = "spa"
-	ApplicationTypeMachineToMachine      ApplicationType = "m2m"
-)
-
-func (t ApplicationType) Options() []ApplicationType {
-	return []ApplicationType{
-		ApplicationTypeRegular,
-		ApplicationTypeSinglePageApplication,
-		ApplicationTypeMachineToMachine,
-	}
+func New(client client.Client) *Client {
+	return &Client{client}
 }
 
-func (t ApplicationType) Valid(value string) error {
-	return enum.Valid(t.Options(), value)
-}
-
-type ListApplicationsSortMethod string
-
-const (
-	ListApplicationsSortMethodNameAsc  ListApplicationsSortMethod = "name_asc"
-	ListApplicationsSortMethodNameDesc ListApplicationsSortMethod = "name_desc"
-)
-
-func (t ListApplicationsSortMethod) Options() []ListApplicationsSortMethod {
-	return []ListApplicationsSortMethod{
-		ListApplicationsSortMethodNameAsc,
-		ListApplicationsSortMethodNameDesc,
-	}
-}
-
-func (t ListApplicationsSortMethod) Valid(value string) error {
-	return enum.Valid(t.Options(), value)
-}
-
-type ListApplicationsParams struct {
-	Sort      ListApplicationsSortMethod
+type ListParams struct {
+	Sort      ListSortMethod
 	PageSize  int
 	NextToken string
 }
 
-type ListApplicationsResponse struct {
+type ListSortMethod string
+
+const (
+	ListSortMethodNameAsc  ListSortMethod = "name_asc"
+	ListSortMethodNameDesc ListSortMethod = "name_desc"
+)
+
+func (t ListSortMethod) Options() []ListSortMethod {
+	return []ListSortMethod{
+		ListSortMethodNameAsc,
+		ListSortMethodNameDesc,
+	}
+}
+
+func (t ListSortMethod) Valid() error {
+	return enum.Valid(t.Options(), t)
+}
+
+type ListResponse struct {
 	Code         string        `json:"code"`
 	Message      string        `json:"message"`
 	NextToken    string        `json:"next_token"`
@@ -80,7 +52,7 @@ type ListApplicationsResponse struct {
 // https://kinde.com/api/docs/#get-applications
 //
 // note: only id, name, and type will be populated
-func (c *Client) ListApplications(ctx context.Context, params ListApplicationsParams) ([]Application, error) {
+func (c *Client) List(ctx context.Context, params ListParams) ([]Application, error) {
 	query := url.Values{}
 	if params.Sort != "" {
 		query.Set("sort", string(params.Sort))
@@ -100,7 +72,7 @@ func (c *Client) ListApplications(ctx context.Context, params ListApplicationsPa
 		return nil, err
 	}
 
-	var response ListApplicationsResponse
+	var response ListResponse
 	if err := c.DoRequest(req, &response); err != nil {
 		return nil, err
 	}
@@ -108,12 +80,12 @@ func (c *Client) ListApplications(ctx context.Context, params ListApplicationsPa
 	return response.Applications, nil
 }
 
-type CreateApplicationParams struct {
-	Name string          `json:"name"`
-	Type ApplicationType `json:"type"`
+type CreateParams struct {
+	Name string `json:"name"`
+	Type Type   `json:"type"`
 }
 
-type CreateApplicationResponse struct {
+type CreateResponse struct {
 	Code        string      `json:"code"`
 	Message     string      `json:"message"`
 	Application Application `json:"application"`
@@ -122,14 +94,14 @@ type CreateApplicationResponse struct {
 // https://kinde.com/api/docs/#create-application
 //
 // note: client_secret will not be populated for spa applications
-func (c *Client) CreateApplication(ctx context.Context, params CreateApplicationParams) (*Application, error) {
+func (c *Client) Create(ctx context.Context, params CreateParams) (*Application, error) {
 	endpoint := "/api/v1/applications"
 	req, err := c.NewRequest(ctx, http.MethodPost, endpoint, nil, params)
 	if err != nil {
 		return nil, err
 	}
 
-	var response CreateApplicationResponse
+	var response CreateResponse
 	if err := c.DoRequest(req, &response); err != nil {
 		return nil, err
 	}
@@ -137,21 +109,21 @@ func (c *Client) CreateApplication(ctx context.Context, params CreateApplication
 	return &response.Application, nil
 }
 
-type GetApplicationResponse struct {
+type GetResponse struct {
 	Code        string      `json:"code"`
 	Message     string      `json:"message"`
 	Application Application `json:"application"`
 }
 
 // https://kinde.com/api/docs/#get-application
-func (c *Client) GetApplication(ctx context.Context, id string) (*Application, error) {
+func (c *Client) Get(ctx context.Context, id string) (*Application, error) {
 	endpoint := fmt.Sprintf("/api/v1/applications/%s", id)
 	req, err := c.NewRequest(ctx, http.MethodGet, endpoint, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response GetApplicationResponse
+	var response GetResponse
 	if err := c.DoRequest(req, &response); err != nil {
 		return nil, err
 	}
@@ -159,7 +131,7 @@ func (c *Client) GetApplication(ctx context.Context, id string) (*Application, e
 	return &response.Application, nil
 }
 
-type UpdateApplicationParams struct {
+type UpdateParams struct {
 	Name         string   `json:"name,omitempty"`
 	LanguageKey  string   `json:"language_key,omitempty"`
 	LogoutURIs   []string `json:"logout_uris,omitempty"`
@@ -171,7 +143,7 @@ type UpdateApplicationParams struct {
 // https://kinde.com/api/docs/#update-application
 //
 // note: api doesn't return anything meaningful
-func (c *Client) UpdateApplication(ctx context.Context, id string, params UpdateApplicationParams) error {
+func (c *Client) Update(ctx context.Context, id string, params UpdateParams) error {
 	endpoint := fmt.Sprintf("/api/v1/applications/%s", id)
 	req, err := c.NewRequest(ctx, http.MethodPatch, endpoint, nil, params)
 	if err != nil {
@@ -186,7 +158,7 @@ func (c *Client) UpdateApplication(ctx context.Context, id string, params Update
 }
 
 // https://kinde.com/api/docs/#delete-application
-func (c *Client) DeleteApplication(ctx context.Context, id string) error {
+func (c *Client) Delete(ctx context.Context, id string) error {
 	endpoint := fmt.Sprintf("/api/v1/applications/%s", id)
 	req, err := c.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil)
 	if err != nil {

@@ -1,4 +1,4 @@
-package kinde
+package client
 
 import (
 	"os"

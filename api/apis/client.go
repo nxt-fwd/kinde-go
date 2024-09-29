@@ -1,32 +1,22 @@
-package kinde
+package apis
 
 import (
 	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/axatol/kinde-go/internal/client"
 )
 
-var (
-	ErrAPINotFound = fmt.Errorf("api not found")
-)
-
-// https://kinde.com/api/docs/#kinde-management-api-apis
-type API struct {
-	ID              string           `json:"id"`
-	Name            string           `json:"name"`
-	Audience        string           `json:"audience"`
-	IsManagementAPI bool             `json:"is_management_api"`
-	Applications    []APIApplication `json:"applications,omitempty"`
+type Client struct {
+	client.Client
 }
 
-type APIApplication struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	IsActive *bool  `json:"is_active"`
+func New(client client.Client) *Client {
+	return &Client{client}
 }
 
-type ListAPIResponse struct {
+type ListResponse struct {
 	Code      string `json:"code"`
 	Message   string `json:"message"`
 	NextToken string `json:"next_token"`
@@ -36,14 +26,14 @@ type ListAPIResponse struct {
 // https://kinde.com/api/docs/#get-apis
 //
 // todo: pagination
-func (c *Client) ListAPIs(ctx context.Context) ([]API, error) {
+func (c *Client) List(ctx context.Context) ([]API, error) {
 	endpoint := "/api/v1/apis"
 	req, err := c.NewRequest(ctx, http.MethodGet, endpoint, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response ListAPIResponse
+	var response ListResponse
 	if err := c.DoRequest(req, &response); err != nil {
 		return nil, err
 	}
@@ -51,12 +41,12 @@ func (c *Client) ListAPIs(ctx context.Context) ([]API, error) {
 	return response.APIs, nil
 }
 
-type CreateAPIParams struct {
+type CreateParams struct {
 	Name     string `json:"name"`
 	Audience string `json:"audience"`
 }
 
-type CreateAPIResponse struct {
+type CreateResponse struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	API     API    `json:"api"`
@@ -65,14 +55,14 @@ type CreateAPIResponse struct {
 // https://kinde.com/api/docs/#create-api
 //
 // note: only ID will be populated
-func (c *Client) CreateAPI(ctx context.Context, params CreateAPIParams) (*API, error) {
+func (c *Client) Create(ctx context.Context, params CreateParams) (*API, error) {
 	endpoint := "/api/v1/apis"
 	req, err := c.NewRequest(ctx, http.MethodPost, endpoint, nil, params)
 	if err != nil {
 		return nil, err
 	}
 
-	var response CreateAPIResponse
+	var response CreateResponse
 	if err := c.DoRequest(req, &response); err != nil {
 		return nil, err
 	}
@@ -81,17 +71,17 @@ func (c *Client) CreateAPI(ctx context.Context, params CreateAPIParams) (*API, e
 	return &api, nil
 }
 
-type GetAPIResponse CreateAPIResponse
+type GetResponse CreateResponse
 
 // https://kinde.com/api/docs/#get-api
-func (c *Client) GetAPI(ctx context.Context, id string) (*API, error) {
+func (c *Client) Get(ctx context.Context, id string) (*API, error) {
 	endpoint := fmt.Sprintf("/api/v1/apis/%s", id)
 	req, err := c.NewRequest(ctx, http.MethodGet, endpoint, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response CreateAPIResponse
+	var response CreateResponse
 	if err := c.DoRequest(req, &response); err != nil {
 		return nil, err
 	}
@@ -99,20 +89,20 @@ func (c *Client) GetAPI(ctx context.Context, id string) (*API, error) {
 	return &response.API, nil
 }
 
-type DeleteAPIResponse struct {
+type DeleteResponse struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
 // https://kinde.com/api/docs/#delete-api
-func (c *Client) DeleteAPI(ctx context.Context, id string) error {
+func (c *Client) Delete(ctx context.Context, id string) error {
 	endpoint := fmt.Sprintf("/api/v1/apis/%s", id)
 	req, err := c.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil)
 	if err != nil {
 		return err
 	}
 
-	var response CreateAPIResponse
+	var response CreateResponse
 	if err := c.DoRequest(req, &response); err != nil {
 		return err
 	}
@@ -120,7 +110,7 @@ func (c *Client) DeleteAPI(ctx context.Context, id string) error {
 	return nil
 }
 
-type AuthorizeAPIApplicationsParams struct {
+type AuthorizeApplicationsParams struct {
 	Applications []ApplicationAuthorization `json:"applications"`
 }
 
@@ -130,7 +120,7 @@ type ApplicationAuthorization struct {
 	Operation string `json:"operation,omitempty"`
 }
 
-type AuthorizeAPIApplicationsResponse struct {
+type AuthorizeApplicationsResponse struct {
 	Code                     string   `json:"code"`
 	Message                  string   `json:"message"`
 	ApplicationsDisconnected []string `json:"applications_disconnected"`
@@ -138,14 +128,14 @@ type AuthorizeAPIApplicationsResponse struct {
 }
 
 // https://kinde.com/api/docs/#authorize-api-applications
-func (c *Client) AuthorizeAPIApplications(ctx context.Context, id string, params AuthorizeAPIApplicationsParams) error {
+func (c *Client) AuthorizeApplications(ctx context.Context, id string, params AuthorizeApplicationsParams) error {
 	endpoint := fmt.Sprintf("/api/v1/apis/%s/applications", id)
 	req, err := c.NewRequest(ctx, http.MethodPatch, endpoint, nil, params)
 	if err != nil {
 		return err
 	}
 
-	var response AuthorizeAPIApplicationsResponse
+	var response AuthorizeApplicationsResponse
 	if err := c.DoRequest(req, &response); err != nil {
 		return err
 	}
