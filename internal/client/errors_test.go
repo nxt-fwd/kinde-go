@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/axatol/kinde-go"
+	"github.com/axatol/kinde-go/internal/client"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRequestError(t *testing.T) {
-	err0 := &kinde.KindeErrors{
+	err0 := &client.KindeErrors{
 		{Code: "FOO"},
 		{Code: "BAR"},
 	}
 
-	err1 := &kinde.RequestError{
+	err1 := &client.RequestError{
 		Method:     "GET",
 		Path:       "/api/v1/apis",
 		StatusCode: 404,
