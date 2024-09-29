@@ -38,7 +38,7 @@ type TestServer struct {
 	CallCount CallCount
 }
 
-type TestServerHandler func(header http.Header, body []byte) (int, string)
+type TestServerHandler func(header http.Header, query url.Values, body []byte) (int, string)
 
 func NewTestServer(t *testing.T, config *TestServerConfig) *TestServer {
 	t.Helper()
@@ -56,7 +56,7 @@ func NewTestServer(t *testing.T, config *TestServerConfig) *TestServer {
 		testServer.Config = DefaultTestServerConfig()
 	}
 
-	testServer.Handle(t, http.MethodPost, "/oauth2/token", func(header http.Header, body []byte) (int, string) {
+	testServer.Handle(t, http.MethodPost, "/oauth2/token", func(header http.Header, query url.Values, body []byte) (int, string) {
 		payload, err := url.ParseQuery(string(body))
 		assert.NoError(t, err)
 
@@ -101,7 +101,7 @@ func (s *TestServer) Handle(t *testing.T, method, path string, handler TestServe
 		assert.NoError(t, err)
 		t.Logf("[TestServer.Handle] %s %s request body: %s\n", r.Method, r.URL.Path, string(raw))
 
-		status, response := handler(r.Header, raw)
+		status, response := handler(r.Header, r.URL.Query(), raw)
 		t.Logf("[TestServer.Handle] %s %s response: %d - %s\n", r.Method, r.URL.Path, status, string(response))
 
 		w.WriteHeader(status)
@@ -110,7 +110,7 @@ func (s *TestServer) Handle(t *testing.T, method, path string, handler TestServe
 }
 
 func (s *TestServer) HandleAuthenticated(t *testing.T, method, path string, handler TestServerHandler) {
-	s.Handle(t, method, path, func(header http.Header, body []byte) (int, string) {
+	s.Handle(t, method, path, func(header http.Header, query url.Values, body []byte) (int, string) {
 		expectedToken := fmt.Sprintf("Bearer %s", s.Config.AccessToken)
 		actualToken := header.Get("authorization")
 		assert.Equal(t, expectedToken, actualToken)
@@ -122,6 +122,6 @@ func (s *TestServer) HandleAuthenticated(t *testing.T, method, path string, hand
 			return http.StatusOK, `{"code":"OK"}`
 		}
 
-		return handler(header, body)
+		return handler(header, query, body)
 	})
 }

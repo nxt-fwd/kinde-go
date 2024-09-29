@@ -3,6 +3,7 @@ package applications_test
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/axatol/kinde-go/api/applications"
@@ -21,7 +22,7 @@ func TestList(t *testing.T) {
 func TestCreate(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 	client := applications.New(client.New(context.TODO(), nil))
-	testServer.Handle(t, http.MethodPost, "/api/v1/applications", func(header http.Header, body []byte) (int, string) {
+	testServer.Handle(t, http.MethodPost, "/api/v1/applications", func(header http.Header, query url.Values, body []byte) (int, string) {
 		assert.Equal(t, `{"name":"name","type":"reg"}`, string(body))
 		return http.StatusOK, `{"code":"OK","application":{"id":"id","client_id":"client_id","client_secret":"client_secret"}}`
 	})

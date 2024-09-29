@@ -3,6 +3,7 @@ package apis_test
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/axatol/kinde-go/api/apis"
@@ -21,7 +22,7 @@ func TestList(t *testing.T) {
 func TestCreate(t *testing.T) {
 	testServer := testutil.NewTestServer(t, nil)
 	client := apis.New(client.New(context.TODO(), nil))
-	testServer.Handle(t, http.MethodPost, "/api/v1/apis", func(header http.Header, body []byte) (int, string) {
+	testServer.Handle(t, http.MethodPost, "/api/v1/apis", func(header http.Header, query url.Values, body []byte) (int, string) {
 		assert.Equal(t, `{"name":"name","audience":"audience"}`, string(body))
 		return http.StatusOK, `{"code":"OK","api":{"id":"id"}}`
 	})
