@@ -42,7 +42,7 @@ func TestE2ECreateGetUpdateDelete(t *testing.T) {
 	t.Logf("got test application: %+v\n", res)
 
 	updateParams := applications.UpdateParams{
-		Name:         tempID,
+		Name:         tempID + "-updated",
 		LoginURI:     "https://example.com",
 		HomepageURI:  "https://example.com",
 		LogoutURIs:   []string{"https://example.com"},
@@ -52,10 +52,22 @@ func TestE2ECreateGetUpdateDelete(t *testing.T) {
 	err = client.Update(context.TODO(), id, updateParams)
 	assert.NoError(t, err)
 
-	t.Logf("updated test application: %+v\n", res)
+	// Verify the updated parameters
+	updated, err := client.Get(context.TODO(), id)
+	assert.NoError(t, err)
+	require.NotNil(t, updated)
+
+	// Assert that the parameters were updated correctly
+	assert.Equal(t, updateParams.Name, updated.Name)
+	assert.Equal(t, updateParams.LoginURI, updated.LoginURI)
+	assert.Equal(t, updateParams.HomepageURI, updated.HomepageURI)
+	// Note: LogoutURIs and RedirectURIs are set via the update request
+	// but are not returned in the GET response from the Kinde API
+
+	t.Logf("updated test application: %+v\n", updated)
 
 	err = client.Delete(context.TODO(), id)
 	assert.NoError(t, err)
 
-	t.Logf("deleted test application: %+v\n", res)
+	t.Logf("deleted test application: %+v\n", updated)
 }

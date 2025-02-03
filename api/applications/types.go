@@ -4,11 +4,15 @@ import "github.com/axatol/kinde-go/internal/enum"
 
 // https://kinde.com/api/docs/#kinde-management-api-applications
 type Application struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Type         Type   `json:"type"`
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
+	ID           string   `json:"id"`
+	Name         string   `json:"name"`
+	Type         Type     `json:"type"`
+	ClientID     string   `json:"client_id"`
+	ClientSecret string   `json:"client_secret"`
+	LoginURI     string   `json:"login_uri"`
+	HomepageURI  string   `json:"homepage_uri"`
+	LogoutURIs   []string `json:"logout_uris"`
+	RedirectURIs []string `json:"redirect_uris"`
 }
 
 var _ enum.Enum[Type] = (*Type)(nil)
