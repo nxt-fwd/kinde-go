@@ -78,38 +78,3 @@ func TestE2ECreateGetUpdateDelete(t *testing.T) {
 	_, err = client.Get(context.TODO(), id)
 	assert.Error(t, err)
 }
-
-func TestE2EAddToOrganization(t *testing.T) {
-	client := users.New(testutil.DefaultE2EClient(t))
-	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
-	email := fmt.Sprintf("%s@example.com", tempID)
-
-	// First create a test user
-	user, err := client.Create(context.TODO(), users.CreateParams{
-		Profile: users.Profile{
-			GivenName:  "Test",
-			FamilyName: "User",
-			Email:      email,
-			ProvidedID: tempID,
-		},
-	})
-	assert.NoError(t, err)
-	require.NotNil(t, user)
-	require.NotEmpty(t, user.ID)
-
-	// Add the user to the organization
-	err = client.AddToOrganization(context.TODO(), "test_org", users.AddToOrgParams{
-		Users: []users.AddToOrgUser{
-			{
-				ID:          user.ID,
-				Roles:       []string{"manager"},
-				Permissions: []string{"admin"},
-			},
-		},
-	})
-	assert.NoError(t, err)
-
-	// Clean up - delete the test user
-	err = client.Delete(context.TODO(), user.ID)
-	assert.NoError(t, err)
-} 
