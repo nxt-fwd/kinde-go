@@ -130,4 +130,40 @@ func (c *Client) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+// AddIdentity adds a new identity to a user
+func (c *Client) AddIdentity(ctx context.Context, userID string, params AddIdentityParams) (*Identity, error) {
+	endpoint := fmt.Sprintf("/api/v1/users/%s/identities", userID)
+	req, err := c.NewRequest(ctx, http.MethodPost, endpoint, nil, params)
+	if err != nil {
+		return nil, err
+	}
+
+	var response AddIdentityResponse
+	if err := c.DoRequest(req, &response); err != nil {
+		return nil, err
+	}
+
+	return &response.Identity, nil
+}
+
+// GetIdentities gets all identities for a user
+func (c *Client) GetIdentities(ctx context.Context, userID string) ([]Identity, error) {
+	endpoint := fmt.Sprintf("/api/v1/users/%s/identities", userID)
+	req, err := c.NewRequest(ctx, http.MethodGet, endpoint, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		Code       string     `json:"code"`
+		Message    string     `json:"message"`
+		Identities []Identity `json:"identities"`
+	}
+	if err := c.DoRequest(req, &response); err != nil {
+		return nil, err
+	}
+
+	return response.Identities, nil
 } 

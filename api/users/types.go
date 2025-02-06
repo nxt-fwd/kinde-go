@@ -37,8 +37,14 @@ type Profile struct {
 }
 
 type Identity struct {
-	Type  string `json:"type"`
-	Value string `json:"value"`
+	ID          string            `json:"id"`
+	Type        string            `json:"type"`
+	Name        string            `json:"name"`
+	CreatedOn   time.Time         `json:"created_on"`
+	IsConfirmed *bool             `json:"is_confirmed"`
+	TotalLogins int               `json:"total_logins"`
+	LastLoginOn *time.Time        `json:"last_login_on"`
+	Details     map[string]string `json:"details"`
 }
 
 type CreateResponse struct {
@@ -73,4 +79,27 @@ type UpdateResponse struct {
 type DeleteResponse struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+}
+
+type IdentityType string
+
+const (
+	IdentityTypeEmail      IdentityType = "email"
+	IdentityTypeUsername   IdentityType = "username"
+	IdentityTypePhone      IdentityType = "phone"
+	IdentityTypeEnterprise IdentityType = "enterprise"
+	IdentityTypeSocial     IdentityType = "social"
+)
+
+type AddIdentityParams struct {
+	Value           string       `json:"value"`
+	Type            IdentityType `json:"type"`
+	PhoneCountryID  string       `json:"phone_country_id,omitempty"`
+	ConnectionID    string       `json:"connection_id,omitempty"`
+}
+
+type AddIdentityResponse struct {
+	Code     string   `json:"code"`
+	Message  string   `json:"message"`
+	Identity Identity `json:"identity"`
 } 

@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/axatol/kinde-go/internal/logger"
 	"github.com/axatol/kinde-go/internal/oauth2"
@@ -21,14 +20,20 @@ type Client interface {
 }
 
 type clientImpl struct {
-	client *http.Client
-	domain string
-	logger logger.Logger
+	client  *http.Client
+	domain  string
+	options *ClientOptions
+	logger  logger.Logger
 }
 
 func New(ctx context.Context, options *ClientOptions) Client {
 	if options == nil {
 		options = NewClientOptions()
+	}
+
+	if err := options.Validate(); err != nil {
+		// Return a client that will always return the validation error
+		return &errorClient{err: err}
 	}
 
 	transport := &oauth2.OAuth2Transport{
@@ -43,51 +48,52 @@ func New(ctx context.Context, options *ClientOptions) Client {
 	client := &clientImpl{
 		client: &http.Client{Transport: transport},
 		domain: options.Domain,
+		options: options,
 		logger: options.Logger,
 	}
 
 	return client
 }
 
-func (c *clientImpl) NewRequest(ctx context.Context, method, path string, query url.Values, payload any) (*http.Request, error) {
-	endpoint := strings.Builder{}
-	endpoint.WriteString(c.domain)
-	if !strings.HasPrefix(path, "/") {
-		endpoint.WriteString("/")
-	}
-	endpoint.WriteString(path)
-
-	if query != nil {
-		endpoint.WriteString("?" + query.Encode())
+func (c *clientImpl) NewRequest(ctx context.Context, method string, path string, query url.Values, body any) (*http.Request, error) {
+	// Validate credentials before proceeding
+	if err := c.options.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid client configuration: %w", err)
 	}
 
-	c.logger.Logf("[Client.NewRequest] %s %s - url: %s\n", method, path, endpoint.String())
-
-	var encoded io.Reader
-	if payload != nil {
-		raw, err := json.Marshal(payload)
-		if err != nil {
-			return nil, RequestError{
-				Method: method,
-				Path:   path,
-				Err:    fmt.Errorf("failed to marshal request payload: %w", err),
-			}
-		}
-
-		c.logger.Logf("[Client.NewRequest] %s %s - request payload: %s\n", method, path, string(raw))
-		encoded = bytes.NewReader(raw)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, method, endpoint.String(), encoded)
+	// Build URL
+	u, err := url.Parse(c.domain)
 	if err != nil {
-		return nil, RequestError{
-			Method: method,
-			Path:   path,
-			Err:    fmt.Errorf("failed to create request: %w", err),
-		}
+		return nil, fmt.Errorf("failed to parse domain URL: %w", err)
 	}
 
-	c.logger.Logf("[Client.NewRequest] %s %s - request payload content length: %d\n", method, path, req.ContentLength)
+	u.Path = path
+	if query != nil {
+		u.RawQuery = query.Encode()
+	}
+
+	// Create request
+	var buf io.Reader
+	if body != nil {
+		raw, err := json.Marshal(body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal request body: %w", err)
+		}
+
+		buf = bytes.NewBuffer(raw)
+		c.logger.Logf("[Client.NewRequest] %s %s - request body: %s\n", method, path, string(raw))
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), buf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Set headers
+	if token := c.options.GetAccessToken(); token != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	}
+	req.Header.Set("Content-Type", "application/json")
 
 	return req, nil
 }
@@ -98,8 +104,17 @@ func (c *clientImpl) DoRequest(req *http.Request, result any) error {
 		return RequestError{
 			Method:     req.Method,
 			Path:       req.URL.Path,
-			StatusCode: res.StatusCode,
+			StatusCode: http.StatusInternalServerError,
 			Err:        fmt.Errorf("failed to execute request: %w", err),
+		}
+	}
+
+	if res == nil {
+		return RequestError{
+			Method:     req.Method,
+			Path:       req.URL.Path,
+			StatusCode: http.StatusInternalServerError,
+			Err:        fmt.Errorf("received nil response from server"),
 		}
 	}
 
@@ -117,6 +132,16 @@ func (c *clientImpl) DoRequest(req *http.Request, result any) error {
 	}
 
 	c.logger.Logf("[Client.DoRequest] %s %s - response body: %s\n", req.Method, req.URL.Path, string(raw))
+
+	// Handle authentication errors specifically
+	if res.StatusCode == http.StatusUnauthorized {
+		return RequestError{
+			Method:     req.Method,
+			Path:       req.URL.Path,
+			StatusCode: res.StatusCode,
+			Err:        fmt.Errorf("authentication failed: invalid credentials or token"),
+		}
+	}
 
 	var errs KindeErrors
 	if rawErrs := gjson.GetBytes(raw, "errors"); rawErrs.Exists() {
@@ -161,4 +186,17 @@ func (c *clientImpl) DoRequest(req *http.Request, result any) error {
 	}
 
 	return nil
+}
+
+// errorClient is a client implementation that always returns the same error
+type errorClient struct {
+	err error
+}
+
+func (c *errorClient) NewRequest(ctx context.Context, method, path string, query url.Values, payload any) (*http.Request, error) {
+	return nil, c.err
+}
+
+func (c *errorClient) DoRequest(req *http.Request, result any) error {
+	return c.err
 }
