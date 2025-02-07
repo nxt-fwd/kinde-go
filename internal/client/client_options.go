@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 

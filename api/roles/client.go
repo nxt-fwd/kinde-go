@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
-
 	"github.com/nxt-fwd/kinde-go/internal/client"
 )
 

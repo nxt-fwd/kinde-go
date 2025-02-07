@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/nxt-fwd/kinde-go/internal/logger"
 	"github.com/nxt-fwd/kinde-go/internal/oauth2"
