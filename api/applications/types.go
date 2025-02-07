@@ -1,6 +1,6 @@
 package applications
 
-import "github.com/axatol/kinde-go/internal/enum"
+import "github.com/nxt-fwd/kinde-go/internal/enum"
 
 // https://kinde.com/api/docs/#kinde-management-api-applications
 type Application struct {

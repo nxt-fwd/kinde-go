@@ -1,8 +1,8 @@
 package kinde
 
 import (
-	"github.com/axatol/kinde-go/internal/client"
-	"github.com/axatol/kinde-go/internal/logger"
+	"github.com/nxt-fwd/kinde-go/internal/client"
+	"github.com/nxt-fwd/kinde-go/internal/logger"
 )
 
 // ClientOptions represents the configuration options for the Kinde client.

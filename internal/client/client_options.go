@@ -2,10 +2,11 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
-	"github.com/axatol/kinde-go/internal/logger"
+	"github.com/nxt-fwd/kinde-go/internal/logger"
 )
 
 type ClientOptions struct {

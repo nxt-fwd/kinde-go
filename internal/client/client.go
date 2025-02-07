@@ -8,9 +8,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
-	"github.com/axatol/kinde-go/internal/logger"
-	"github.com/axatol/kinde-go/internal/oauth2"
+	"github.com/nxt-fwd/kinde-go/internal/logger"
+	"github.com/nxt-fwd/kinde-go/internal/oauth2"
 	"github.com/tidwall/gjson"
 )
 

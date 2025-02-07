@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/axatol/kinde-go/api/apis"
-	"github.com/axatol/kinde-go/api/applications"
-	"github.com/axatol/kinde-go/internal/testutil"
+	"github.com/nxt-fwd/kinde-go/api/apis"
+	"github.com/nxt-fwd/kinde-go/api/applications"
+	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

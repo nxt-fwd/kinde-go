@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/axatol/kinde-go/internal/logger"
+	"github.com/nxt-fwd/kinde-go/internal/logger"
 )
 
 // based on https://pkg.go.dev/golang.org/x/oauth2/clientcredentials

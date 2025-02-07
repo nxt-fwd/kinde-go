@@ -3,11 +3,12 @@ package permissions_test
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"testing"
 
-	"github.com/axatol/kinde-go/api/permissions"
-	"github.com/axatol/kinde-go/internal/client"
-	"github.com/axatol/kinde-go/internal/testutil"
+	"github.com/nxt-fwd/kinde-go/api/permissions"
+	"github.com/nxt-fwd/kinde-go/internal/client"
+	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 

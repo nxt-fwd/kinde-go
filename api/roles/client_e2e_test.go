@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/axatol/kinde-go/api/roles"
-	"github.com/axatol/kinde-go/api/permissions"
-	"github.com/axatol/kinde-go/internal/testutil"
+	"github.com/nxt-fwd/kinde-go/api/roles"
+	"github.com/nxt-fwd/kinde-go/api/permissions"
+	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

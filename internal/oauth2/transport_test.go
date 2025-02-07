@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/axatol/kinde-go/internal/oauth2"
-	"github.com/axatol/kinde-go/internal/testutil"
+	"github.com/nxt-fwd/kinde-go/internal/oauth2"
+	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

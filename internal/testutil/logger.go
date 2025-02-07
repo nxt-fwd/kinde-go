@@ -1,9 +1,10 @@
 package testutil
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/axatol/kinde-go/internal/logger"
+	"github.com/nxt-fwd/kinde-go/internal/logger"
 )
 
 func NewTestLogger(t *testing.T) logger.Logger {
