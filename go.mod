@@ -1,4 +1,4 @@
-gitmodule github.com/nxt-fwd/kinde-go
+module github.com/nxt-fwd/kinde-go
 
 go 1.23.0
 
