@@ -64,7 +64,45 @@ func (c *Client) Get(ctx context.Context, id string) (*Role, error) {
 		return nil, err
 	}
 
+	// Get role permissions
+	perms, err := c.GetRolePermissions(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get role permissions: %w", err)
+	}
+	response.Role.Permissions = perms
+
 	return &response.Role, nil
+}
+
+// GetRolePermissions gets all permissions assigned to a role
+func (c *Client) GetRolePermissions(ctx context.Context, roleID string) ([]string, error) {
+	endpoint := fmt.Sprintf("/api/v1/roles/%s/permissions", roleID)
+	req, err := c.NewRequest(ctx, http.MethodGet, endpoint, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		Code        string       `json:"code"`
+		Message     string       `json:"message"`
+		NextToken   string       `json:"next_token"`
+		Permissions []Permission `json:"permissions"`
+	}
+	if err := c.DoRequest(req, &response); err != nil {
+		return nil, err
+	}
+
+	// Convert Permission objects to permission IDs
+	var permissionIDs []string
+	if response.Permissions != nil {
+		for _, p := range response.Permissions {
+			permissionIDs = append(permissionIDs, p.ID)
+		}
+	} else {
+		permissionIDs = make([]string, 0)
+	}
+
+	return permissionIDs, nil
 }
 
 // Update role details

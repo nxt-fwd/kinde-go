@@ -288,4 +288,96 @@ func TestE2EBulkPermissionChanges(t *testing.T) {
 	// Clean up - delete the test role
 	err = client.Delete(context.TODO(), id)
 	assert.NoError(t, err)
+}
+
+func TestE2EBulkPermissionOperations(t *testing.T) {
+	client := roles.New(testutil.DefaultE2EClient(t))
+	permClient := permissions.New(testutil.DefaultE2EClient(t))
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
+
+	// Create test permissions
+	testPerms := []struct {
+		name string
+		key  string
+	}{
+		{name: "Read Users", key: "users:read"},
+		{name: "Write Users", key: "users:write"},
+		{name: "Delete Users", key: "users:delete"},
+		{name: "Read Orgs", key: "orgs:read"},
+		{name: "Write Orgs", key: "orgs:write"},
+	}
+
+	var createdPerms []string
+	for _, p := range testPerms {
+		perm, err := permClient.Create(context.TODO(), permissions.CreateParams{
+			Name: fmt.Sprintf("%s-%s", tempID, p.name),
+			Key:  fmt.Sprintf("%s-%s", tempID, p.key),
+		})
+		assert.NoError(t, err)
+		require.NotNil(t, perm)
+		createdPerms = append(createdPerms, perm.ID)
+		t.Logf("created permission: %s (%s)", perm.Name, perm.ID)
+	}
+
+	// Create a test role
+	role, err := client.Create(context.TODO(), roles.CreateParams{
+		Name: tempID,
+		Key:  tempID,
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	t.Logf("created role: %s", role.ID)
+
+	// Test bulk permission addition
+	addResponse, err := client.UpdatePermissions(context.TODO(), role.ID, roles.UpdatePermissionsParams{
+		Permissions: []roles.UpdatePermissionItem{
+			{ID: createdPerms[0]},
+			{ID: createdPerms[1]},
+			{ID: createdPerms[2]},
+		},
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, addResponse)
+	assert.Len(t, addResponse.PermissionsAdded, 3, "should have added 3 permissions")
+	t.Log("added initial permissions")
+
+	// Verify permissions were added
+	role, err = client.Get(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Len(t, role.Permissions, 3, "role should have 3 permissions")
+	t.Log("verified initial permissions")
+
+	// Test mixed operation - add some and remove some in one call
+	mixedResponse, err := client.UpdatePermissions(context.TODO(), role.ID, roles.UpdatePermissionsParams{
+		Permissions: []roles.UpdatePermissionItem{
+			{ID: createdPerms[0], Operation: "delete"}, // Remove first permission
+			{ID: createdPerms[3]}, // Add new permission
+			{ID: createdPerms[4]}, // Add new permission
+		},
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, mixedResponse)
+	assert.Len(t, mixedResponse.PermissionsAdded, 2, "should have added 2 permissions")
+	assert.Len(t, mixedResponse.PermissionsRemoved, 1, "should have removed 1 permission")
+	t.Log("performed mixed permission update")
+
+	// Verify final permission state
+	role, err = client.Get(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Len(t, role.Permissions, 4, "role should have 4 permissions")
+	t.Log("verified final permissions")
+
+	// Clean up - delete the role
+	err = client.Delete(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	t.Log("deleted role")
+
+	// Clean up - delete all test permissions
+	for _, permID := range createdPerms {
+		err = permClient.Delete(context.TODO(), permID)
+		assert.NoError(t, err)
+	}
+	t.Log("deleted test permissions")
 } 
