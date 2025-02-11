@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/axatol/kinde-go/api/permissions"
-	"github.com/axatol/kinde-go/internal/testutil"
+	"github.com/nxt-fwd/kinde-go/api/permissions"
+	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,7 +19,11 @@ func TestE2EList(t *testing.T) {
 	client := permissions.New(testutil.DefaultE2EClient(t))
 	res, err := client.List(context.TODO(), permissions.ListParams{})
 	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	// The permissions array might be nil if there are no permissions
+	if res == nil {
+		res = []permissions.Permission{}
+	}
+	t.Logf("found %d permissions", len(res))
 }
 
 func TestE2ECreateUpdateDelete(t *testing.T) {

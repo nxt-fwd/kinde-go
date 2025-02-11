@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/axatol/kinde-go/api/applications"
-	"github.com/axatol/kinde-go/internal/client"
-	"github.com/axatol/kinde-go/internal/testutil"
+	"github.com/nxt-fwd/kinde-go/api/applications"
+	"github.com/nxt-fwd/kinde-go/internal/client"
+	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 )
 

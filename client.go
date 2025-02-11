@@ -3,10 +3,13 @@ package kinde
 import (
 	"context"
 
-	"github.com/axatol/kinde-go/api/apis"
-	"github.com/axatol/kinde-go/api/applications"
-	"github.com/axatol/kinde-go/api/permissions"
-	"github.com/axatol/kinde-go/internal/client"
+	"github.com/nxt-fwd/kinde-go/api/apis"
+	"github.com/nxt-fwd/kinde-go/api/applications"
+	"github.com/nxt-fwd/kinde-go/api/organizations"
+	"github.com/nxt-fwd/kinde-go/api/permissions"
+	"github.com/nxt-fwd/kinde-go/api/roles"
+	"github.com/nxt-fwd/kinde-go/api/users"
+	"github.com/nxt-fwd/kinde-go/internal/client"
 )
 
 type Client struct {
@@ -14,16 +17,22 @@ type Client struct {
 
 	APIs         *apis.Client
 	Applications *applications.Client
+	Organizations *organizations.Client
 	Permissions  *permissions.Client
+	Roles        *roles.Client
+	Users        *users.Client
 }
 
-func New(ctx context.Context, options *client.ClientOptions) Client {
-	client := client.New(ctx, options)
+func New(ctx context.Context, options *ClientOptions) Client {
+	client := client.New(ctx, options.ClientOptions)
 
 	return Client{
 		client:       client,
 		APIs:         apis.New(client),
 		Applications: applications.New(client),
+		Organizations: organizations.New(client),
 		Permissions:  permissions.New(client),
+		Roles:        roles.New(client),
+		Users:        users.New(client),
 	}
 }

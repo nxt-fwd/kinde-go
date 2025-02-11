@@ -7,8 +7,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/axatol/kinde-go/internal/client"
-	"github.com/axatol/kinde-go/internal/e2e"
+	"github.com/nxt-fwd/kinde-go/internal/client"
+	"github.com/nxt-fwd/kinde-go/internal/e2e"
 	"github.com/stretchr/testify/require"
 )
 

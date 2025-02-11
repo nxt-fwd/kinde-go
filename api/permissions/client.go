@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/axatol/kinde-go/internal/client"
-	"github.com/axatol/kinde-go/internal/enum"
+	"github.com/nxt-fwd/kinde-go/internal/client"
+	"github.com/nxt-fwd/kinde-go/internal/enum"
 )
 
 var (

@@ -14,7 +14,7 @@ Kinde golang client
 ```go
 package main
 
-import "github.com/axatol/kinde-go"
+import "github.com/nxt-fwd/kinde-go"
 
 func main() {
   // load config from environment variables

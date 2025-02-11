@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/axatol/kinde-go/internal/client"
+	"github.com/nxt-fwd/kinde-go/internal/client"
 )
 
 type Client struct {
