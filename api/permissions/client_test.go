@@ -3,7 +3,6 @@ package permissions_test
 import (
 	"context"
 	"net/http"
-	"net/url"
 	"testing"
 
 	"github.com/nxt-fwd/kinde-go/api/permissions"

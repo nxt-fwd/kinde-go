@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/nxt-fwd/kinde-go/api/users"
-	"github.com/nxt-fwd/kinde-go/internal/client"
 	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -149,4 +148,65 @@ func TestE2EIdentities(t *testing.T) {
 	err = client.Delete(context.TODO(), user.ID)
 	assert.NoError(t, err)
 	t.Logf("deleted test user: %s\n", user.ID)
+}
+
+func TestE2EUserManagement(t *testing.T) {
+	client := users.New(testutil.DefaultE2EClient(t))
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
+	email := fmt.Sprintf("%s@example.com", tempID)
+
+	// Create test user
+	user, err := client.Create(context.TODO(), users.CreateParams{
+		Profile: users.Profile{
+			GivenName:  "Test",
+			FamilyName: "User",
+			Email:      email,
+		},
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	require.NotEmpty(t, user.ID)
+
+	id := user.ID
+	t.Logf("created test user: %s\n", id)
+
+	// Test user suspension
+	isSuspended := true
+	updateParams := users.UpdateParams{
+		IsSuspended: &isSuspended,
+	}
+	user, err = client.Update(context.TODO(), id, updateParams)
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	assert.True(t, user.IsSuspended)
+	t.Log("suspended user")
+
+	// Test user reactivation
+	isSuspended = false
+	updateParams = users.UpdateParams{
+		IsSuspended: &isSuspended,
+	}
+	user, err = client.Update(context.TODO(), id, updateParams)
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	assert.False(t, user.IsSuspended)
+	t.Log("reactivated user")
+
+	// Test profile updates
+	updateParams = users.UpdateParams{
+		GivenName:  "Updated",
+		FamilyName: "Name",
+		ProvidedID: "custom-id",
+	}
+	user, err = client.Update(context.TODO(), id, updateParams)
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	assert.Equal(t, "Updated", user.FirstName)
+	assert.Equal(t, "Name", user.LastName)
+	t.Log("updated user profile")
+
+	// Clean up
+	err = client.Delete(context.TODO(), id)
+	assert.NoError(t, err)
+	t.Log("deleted test user")
 }

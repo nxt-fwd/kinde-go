@@ -1,7 +1,6 @@
 package testutil
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/nxt-fwd/kinde-go/internal/logger"

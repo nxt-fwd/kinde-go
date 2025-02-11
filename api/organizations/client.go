@@ -118,4 +118,69 @@ func (c *Client) AddUsers(ctx context.Context, code string, params AddUsersParam
 	}
 
 	return nil
+}
+
+// AddUserRole adds a role to a user in an organization
+func (c *Client) AddUserRole(ctx context.Context, orgCode string, userID string, roleID string) error {
+	endpoint := fmt.Sprintf("/api/v1/organizations/%s/users/%s/roles", orgCode, userID)
+	req, err := c.NewRequest(ctx, http.MethodPost, endpoint, nil, map[string]string{
+		"role_id": roleID,
+	})
+	if err != nil {
+		return err
+	}
+
+	var response struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	}
+	if err := c.DoRequest(req, &response); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetUserRoles gets all roles assigned to a user in an organization
+func (c *Client) GetUserRoles(ctx context.Context, orgCode string, userID string) ([]Role, error) {
+	endpoint := fmt.Sprintf("/api/v1/organizations/%s/users/%s/roles", orgCode, userID)
+	req, err := c.NewRequest(ctx, http.MethodGet, endpoint, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		Roles   []Role `json:"roles"`
+	}
+	if err := c.DoRequest(req, &response); err != nil {
+		return nil, err
+	}
+
+	// Initialize empty slice if no roles are returned
+	if response.Roles == nil {
+		response.Roles = make([]Role, 0)
+	}
+
+	return response.Roles, nil
+}
+
+// RemoveUserRole removes a role from a user in an organization
+func (c *Client) RemoveUserRole(ctx context.Context, orgCode string, userID string, roleID string) error {
+	endpoint := fmt.Sprintf("/api/v1/organizations/%s/users/%s/roles/%s", orgCode, userID, roleID)
+	req, err := c.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	var response struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	}
+	if err := c.DoRequest(req, &response); err != nil {
+		return err
+	}
+
+	return nil
 } 

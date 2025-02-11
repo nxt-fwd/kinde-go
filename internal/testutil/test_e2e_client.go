@@ -5,7 +5,6 @@ package testutil
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/nxt-fwd/kinde-go/internal/client"
