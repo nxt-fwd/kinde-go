@@ -58,7 +58,7 @@ func TestE2ECreateGetUpdateDelete(t *testing.T) {
 	role, err := client.Create(context.TODO(), roles.CreateParams{
 		Name:        tempID,
 		Key:         tempID,
-		Description: "Test role",
+		Description: "Initial role description",
 		Permissions: []string{readPerm.ID},
 	})
 	assert.NoError(t, err)
@@ -77,7 +77,7 @@ func TestE2ECreateGetUpdateDelete(t *testing.T) {
 	// Update role with both permissions
 	updateParams := roles.UpdateParams{
 		Name:        tempID + "-updated",
-		Description: "Updated test role",
+		Description: "Updated role description",
 		Permissions: []string{readPerm.ID, writePerm.ID},
 	}
 	role, err = client.Update(context.TODO(), id, updateParams)
@@ -321,8 +321,10 @@ func TestE2EBulkPermissionOperations(t *testing.T) {
 
 	// Create a test role
 	role, err := client.Create(context.TODO(), roles.CreateParams{
-		Name: tempID,
-		Key:  tempID,
+		Name:        tempID,
+		Key:         tempID,
+		Description: "Test role for bulk permission operations",
+		Permissions: []string{createdPerms[0]},
 	})
 	assert.NoError(t, err)
 	require.NotNil(t, role)
@@ -380,4 +382,236 @@ func TestE2EBulkPermissionOperations(t *testing.T) {
 		assert.NoError(t, err)
 	}
 	t.Log("deleted test permissions")
+}
+
+func TestE2EPermissionRemoval(t *testing.T) {
+	client := roles.New(testutil.DefaultE2EClient(t))
+	permClient := permissions.New(testutil.DefaultE2EClient(t))
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
+
+	// Create test permissions
+	perm1, err := permClient.Create(context.TODO(), permissions.CreateParams{
+		Name: fmt.Sprintf("%s-perm1", tempID),
+		Key:  fmt.Sprintf("%s-perm1", tempID),
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, perm1)
+	t.Logf("created first permission: %s", perm1.ID)
+
+	perm2, err := permClient.Create(context.TODO(), permissions.CreateParams{
+		Name: fmt.Sprintf("%s-perm2", tempID),
+		Key:  fmt.Sprintf("%s-perm2", tempID),
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, perm2)
+	t.Logf("created second permission: %s", perm2.ID)
+
+	// Create a role
+	role, err := client.Create(context.TODO(), roles.CreateParams{
+		Name:        fmt.Sprintf("test-%d", time.Now().UnixMilli()),
+		Key:         fmt.Sprintf("test-%d", time.Now().UnixMilli()),
+		Description: "Test role for permission removal",
+		Permissions: []string{perm1.ID, perm2.ID},
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	t.Logf("created role: %s", role.ID)
+
+	// Test Case 1: Add and remove permissions one by one
+	t.Log("Test Case 1: Individual permission operations")
+
+	// Add both permissions
+	updateResponse, err := client.UpdatePermissions(context.TODO(), role.ID, roles.UpdatePermissionsParams{
+		Permissions: []roles.UpdatePermissionItem{
+			{ID: perm1.ID},
+			{ID: perm2.ID},
+		},
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, updateResponse)
+	assert.Len(t, updateResponse.PermissionsAdded, 2, "should have added 2 permissions")
+	t.Log("added initial permissions")
+
+	// Verify initial permissions
+	role, err = client.Get(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Len(t, role.Permissions, 2, "role should have 2 permissions initially")
+	t.Log("verified initial permissions")
+
+	// Remove first permission using the delete endpoint
+	err = client.RemovePermission(context.TODO(), role.ID, perm1.ID)
+	assert.NoError(t, err)
+	t.Log("removed first permission")
+
+	// Verify only one permission remains
+	role, err = client.Get(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Len(t, role.Permissions, 1, "role should have 1 permission after removal")
+	assert.Equal(t, perm2.ID, role.Permissions[0], "remaining permission should be perm2")
+	t.Log("verified one permission remains")
+
+	// Remove the second permission using the delete endpoint
+	err = client.RemovePermission(context.TODO(), role.ID, perm2.ID)
+	assert.NoError(t, err)
+	t.Log("removed second permission")
+
+	// Verify no permissions remain
+	role, err = client.Get(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Len(t, role.Permissions, 0, "role should have no permissions after removing all")
+	t.Log("verified no permissions remain")
+
+	// Test Case 2: Bulk permission removal
+	t.Log("Test Case 2: Bulk permission removal")
+
+	// Add permissions again for bulk removal test
+	updateResponse, err = client.UpdatePermissions(context.TODO(), role.ID, roles.UpdatePermissionsParams{
+		Permissions: []roles.UpdatePermissionItem{
+			{ID: perm1.ID},
+			{ID: perm2.ID},
+		},
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, updateResponse)
+
+	// Verify permissions were added
+	role, err = client.Get(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Len(t, role.Permissions, 2, "role should have 2 permissions")
+
+	// Remove all permissions using bulk update
+	updateResponse, err = client.UpdatePermissions(context.TODO(), role.ID, roles.UpdatePermissionsParams{
+		Permissions: []roles.UpdatePermissionItem{
+			{ID: perm1.ID, Operation: "delete"},
+			{ID: perm2.ID, Operation: "delete"},
+		},
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, updateResponse)
+	assert.Len(t, updateResponse.PermissionsRemoved, 2, "should have removed 2 permissions")
+
+	// Verify all permissions were removed
+	role, err = client.Get(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Len(t, role.Permissions, 0, "role should have no permissions after bulk removal")
+
+	// Clean up
+	err = client.Delete(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	t.Log("deleted role")
+
+	err = permClient.Delete(context.TODO(), perm1.ID)
+	assert.NoError(t, err)
+	err = permClient.Delete(context.TODO(), perm2.ID)
+	assert.NoError(t, err)
+	t.Log("deleted test permissions")
+}
+
+func TestE2EDescriptionBehavior(t *testing.T) {
+	ctx := context.TODO()
+	client := roles.New(testutil.DefaultE2EClient(t))
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
+
+	// Test Case 1: Create role with initial description
+	role, err := client.Create(ctx, roles.CreateParams{
+		Name:        tempID,
+		Key:         tempID,
+		Description: "Initial description",
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, role)
+	t.Log("Created role with initial description")
+
+	// Get the role to verify description
+	retrievedRole, err := client.Get(ctx, role.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, "Initial description", retrievedRole.Description)
+
+	// Test Case 2: Update role with new description
+	updatedRole, err := client.Update(ctx, role.ID, roles.UpdateParams{
+		Name:        tempID + "-updated",
+		Key:         tempID,
+		Description: "Updated description",
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, updatedRole)
+	t.Log("Updated role with new description")
+
+	// Get the role again to verify updated description
+	retrievedRole, err = client.Get(ctx, role.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, "Updated description", retrievedRole.Description)
+
+	// Cleanup
+	err = client.Delete(ctx, role.ID)
+	assert.NoError(t, err)
+	t.Log("Cleaned up test role")
+}
+
+func TestE2EDescriptionValidation(t *testing.T) {
+	client := roles.New(testutil.DefaultE2EClient(t))
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
+
+	// Test Case 1: Create without description
+	t.Log("Test Case 1: Create without description")
+	_, err := client.Create(context.TODO(), roles.CreateParams{
+		Name: tempID,
+		Key:  tempID,
+		// Description intentionally omitted
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "description is required")
+	t.Log("Verified error when creating role without description")
+
+	// Test Case 2: Create with empty description
+	t.Log("Test Case 2: Create with empty description")
+	_, err = client.Create(context.TODO(), roles.CreateParams{
+		Name:        tempID,
+		Key:         tempID,
+		Description: "", // Empty description
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "description is required")
+	t.Log("Verified error when creating role with empty description")
+
+	// Create a valid role for update tests
+	role, err := client.Create(context.TODO(), roles.CreateParams{
+		Name:        tempID,
+		Key:         tempID,
+		Description: "Initial description",
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+
+	// Test Case 3: Update without description
+	t.Log("Test Case 3: Update without description")
+	_, err = client.Update(context.TODO(), role.ID, roles.UpdateParams{
+		Name: tempID + "-updated",
+		Key:  tempID,
+		// Description intentionally omitted
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "description is required")
+	t.Log("Verified error when updating role without description")
+
+	// Test Case 4: Update with empty description
+	t.Log("Test Case 4: Update with empty description")
+	_, err = client.Update(context.TODO(), role.ID, roles.UpdateParams{
+		Name:        tempID + "-updated",
+		Key:         tempID,
+		Description: "", // Empty description
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "description is required")
+	t.Log("Verified error when updating role with empty description")
+
+	// Clean up
+	err = client.Delete(context.TODO(), role.ID)
+	assert.NoError(t, err)
+	t.Log("Cleaned up test role")
 } 
