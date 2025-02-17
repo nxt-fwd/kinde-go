@@ -122,26 +122,39 @@ func TestE2EIdentities(t *testing.T) {
 
 	t.Logf("added username identity: %+v\n", usernameIdentity)
 
+	// Add a phone identity
+	phoneNumber := "+61412345678" // Australian number
+	phoneIdentity, err := client.AddPhoneIdentity(context.TODO(), user.ID, phoneNumber)
+	assert.NoError(t, err)
+	require.NotNil(t, phoneIdentity)
+	require.NotEmpty(t, phoneIdentity.ID)
+
+	t.Logf("added phone identity: %+v\n", phoneIdentity)
+
 	// Get and verify all identities
 	identities, err := client.GetIdentities(context.TODO(), user.ID)
 	assert.NoError(t, err)
 	require.NotNil(t, identities)
 
-	// We should have 2 identities (secondary email and username)
-	assert.Equal(t, 2, len(identities), "expected 2 identities")
+	// We should have 3 identities (secondary email, username, and phone)
+	assert.Equal(t, 3, len(identities), "expected 3 identities")
 
 	// Verify the identities
-	var foundSecondaryEmail, foundUsername bool
+	var foundSecondaryEmail, foundUsername, foundPhone bool
 	for _, identity := range identities {
-		if identity.Type == string(users.IdentityTypeEmail) && identity.Name == secondaryEmail {
+		switch {
+		case identity.Type == string(users.IdentityTypeEmail) && identity.Name == secondaryEmail:
 			foundSecondaryEmail = true
-		} else if identity.Type == string(users.IdentityTypeUsername) && identity.Name == username {
+		case identity.Type == string(users.IdentityTypeUsername) && identity.Name == username:
 			foundUsername = true
+		case identity.Type == string(users.IdentityTypePhone) && identity.Name == phoneNumber:
+			foundPhone = true
 		}
 	}
 
 	assert.True(t, foundSecondaryEmail, "secondary email identity not found")
 	assert.True(t, foundUsername, "username identity not found")
+	assert.True(t, foundPhone, "phone identity not found")
 	t.Logf("verified identities: %+v\n", identities)
 
 	// Clean up - delete the test user
@@ -196,7 +209,7 @@ func TestE2EUserManagement(t *testing.T) {
 	updateParams = users.UpdateParams{
 		GivenName:  "Updated",
 		FamilyName: "Name",
-		ProvidedID: "custom-id",
+		ProvidedID: tempID + "-custom",
 	}
 	user, err = client.Update(context.TODO(), id, updateParams)
 	assert.NoError(t, err)
@@ -209,4 +222,137 @@ func TestE2EUserManagement(t *testing.T) {
 	err = client.Delete(context.TODO(), id)
 	assert.NoError(t, err)
 	t.Log("deleted test user")
+}
+
+func TestE2EPhoneIdentity(t *testing.T) {
+	client := users.New(testutil.DefaultE2EClient(t))
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
+	email := fmt.Sprintf("%s@example.com", tempID)
+
+	// Create test user
+	user, err := client.Create(context.TODO(), users.CreateParams{
+		Profile: users.Profile{
+			GivenName:  "Test",
+			FamilyName: "User",
+			Email:      email,
+		},
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	require.NotEmpty(t, user.ID)
+
+	t.Logf("created test user: %s\n", user.ID)
+
+	// Test adding phone identities from different countries
+	testPhones := []struct {
+		name        string
+		phoneNumber string
+	}{
+		{
+			name:        "Armenian number",
+			phoneNumber: "+37455251234",
+		},
+		{
+			name:        "Australian number",
+			phoneNumber: "+61412345678",
+		},
+		{
+			name:        "US number",
+			phoneNumber: "+12025550123",
+		},
+	}
+
+	for _, tt := range testPhones {
+		t.Run(tt.name, func(t *testing.T) {
+			phoneIdentity, err := client.AddPhoneIdentity(context.TODO(), user.ID, tt.phoneNumber)
+			assert.NoError(t, err)
+			require.NotNil(t, phoneIdentity)
+			require.NotEmpty(t, phoneIdentity.ID)
+			t.Logf("added phone identity: %+v\n", phoneIdentity)
+
+			// Verify the identity was added
+			identities, err := client.GetIdentities(context.TODO(), user.ID)
+			assert.NoError(t, err)
+			require.NotNil(t, identities)
+
+			var found bool
+			for _, identity := range identities {
+				if identity.Type == string(users.IdentityTypePhone) && identity.Name == tt.phoneNumber {
+					found = true
+					break
+				}
+			}
+			assert.True(t, found, "phone identity not found")
+		})
+	}
+
+	// Clean up
+	err = client.Delete(context.TODO(), user.ID)
+	assert.NoError(t, err)
+	t.Log("deleted test user")
+}
+
+func TestE2EProfileReset(t *testing.T) {
+	client := users.New(testutil.DefaultE2EClient(t))
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
+	email := fmt.Sprintf("%s@example.com", tempID)
+
+	// Create test user with full profile
+	user, err := client.Create(context.TODO(), users.CreateParams{
+		Profile: users.Profile{
+			GivenName:  "Test",
+			FamilyName: "User",
+			Email:      email,
+		},
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	require.NotEmpty(t, user.ID)
+
+	id := user.ID
+	t.Logf("created test user: %s\n", id)
+
+	// Verify initial state
+	user, err = client.Get(context.TODO(), id)
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	assert.Equal(t, "Test", user.FirstName)
+	assert.Equal(t, "User", user.LastName)
+	t.Logf("initial user state: %+v\n", user)
+
+	// Attempt to reset first and last name to null
+	updateParams := users.UpdateParams{
+		GivenName:  "",  // Try to reset to empty
+		FamilyName: "",  // Try to reset to empty
+	}
+	user, err = client.Update(context.TODO(), id, updateParams)
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	t.Logf("attempted to update user with empty names: %+v\n", user)
+
+	// Get user to verify the state
+	user, err = client.Get(context.TODO(), id)
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	t.Logf("user after empty name update: %+v\n", user)
+
+	// Try updating with omitted fields
+	updateParamsOmit := users.UpdateParams{
+		// First and last name fields omitted
+		ProvidedID: tempID + "-updated",
+	}
+	user, err = client.Update(context.TODO(), id, updateParamsOmit)
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	t.Logf("attempted to update user with omitted names: %+v\n", user)
+
+	// Get user again to verify the final state
+	user, err = client.Get(context.TODO(), id)
+	assert.NoError(t, err)
+	require.NotNil(t, user)
+	t.Logf("user after omitted name update: %+v\n", user)
+
+	// Clean up
+	err = client.Delete(context.TODO(), id)
+	assert.NoError(t, err)
 }

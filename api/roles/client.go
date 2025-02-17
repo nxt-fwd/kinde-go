@@ -33,10 +33,6 @@ func (c *Client) List(ctx context.Context) ([]Role, error) {
 
 // Create a new role
 func (c *Client) Create(ctx context.Context, params CreateParams) (*Role, error) {
-	if params.Description == "" {
-		return nil, fmt.Errorf("description is required when creating a role")
-	}
-
 	endpoint := "/api/v1/roles"
 	req, err := c.NewRequest(ctx, http.MethodPost, endpoint, nil, params)
 	if err != nil {
@@ -111,10 +107,6 @@ func (c *Client) GetRolePermissions(ctx context.Context, roleID string) ([]strin
 
 // Update role details
 func (c *Client) Update(ctx context.Context, id string, params UpdateParams) (*Role, error) {
-	if params.Description == "" {
-		return nil, fmt.Errorf("description is required when updating a role")
-	}
-
 	endpoint := fmt.Sprintf("/api/v1/roles/%s", id)
 	req, err := c.NewRequest(ctx, http.MethodPatch, endpoint, nil, params)
 	if err != nil {

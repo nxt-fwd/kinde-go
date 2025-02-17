@@ -1,12 +1,12 @@
 package roles
 
 type Role struct {
-	ID            string   `json:"id"`
-	Name          string   `json:"name"`
-	Key           string   `json:"key"`
-	Description   string   `json:"description"`
-	Permissions   []string `json:"permissions,omitempty"`
-	IsDefaultRole bool     `json:"is_default_role"`
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Key         string   `json:"key"`
+	Description string   `json:"description,omitempty"`
+	Permissions []string `json:"permissions,omitempty"`
+	IsDefaultRole bool   `json:"is_default_role"`
 }
 
 type ListResponse struct {
@@ -18,7 +18,7 @@ type ListResponse struct {
 type CreateParams struct {
 	Name        string   `json:"name"`
 	Key         string   `json:"key"`
-	Description string   `json:"description"`
+	Description string   `json:"description,omitempty"`
 	Permissions []string `json:"permissions,omitempty"`
 }
 
@@ -31,7 +31,7 @@ type CreateResponse struct {
 type UpdateParams struct {
 	Name        string   `json:"name,omitempty"`
 	Key         string   `json:"key,omitempty"`
-	Description string   `json:"description"`
+	Description string   `json:"description,omitempty"`
 	Permissions []string `json:"permissions,omitempty"`
 }
 
