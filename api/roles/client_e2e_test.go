@@ -380,4 +380,67 @@ func TestE2EBulkPermissionOperations(t *testing.T) {
 		assert.NoError(t, err)
 	}
 	t.Log("deleted test permissions")
+}
+
+func TestE2EDescriptionReset(t *testing.T) {
+	client := roles.New(testutil.DefaultE2EClient(t))
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
+
+	// Create role with a description
+	role, err := client.Create(context.TODO(), roles.CreateParams{
+		Name:        tempID,
+		Key:         tempID,
+		Description: "Initial description",
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	require.NotEmpty(t, role.ID)
+
+	id := role.ID
+	t.Logf("created test role with description: %s\n", id)
+
+	// Get role to verify initial state
+	role, err = client.Get(context.TODO(), id)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Equal(t, "Initial description", role.Description, "description should be preserved after creation")
+	t.Logf("initial role state: %+v\n", role)
+
+	// Attempt to update with empty description
+	updateParams := roles.UpdateParams{
+		Name:        tempID + "-updated",
+		Description: "",  // Try to reset to empty
+	}
+	role, err = client.Update(context.TODO(), id, updateParams)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	t.Logf("attempted to update role with empty description: %+v\n", role)
+
+	// Get role to verify the state - description should not be empty
+	role, err = client.Get(context.TODO(), id)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Equal(t, "Initial description", role.Description, "description should not be cleared by empty string update")
+	t.Logf("role after empty description update: %+v\n", role)
+
+	// Try updating with null/omitted description
+	updateParamsOmit := roles.UpdateParams{
+		Name: tempID + "-updated-again",
+		// Description field omitted
+	}
+	role, err = client.Update(context.TODO(), id, updateParamsOmit)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	t.Logf("attempted to update role with omitted description: %+v\n", role)
+
+	// Get role again to verify the final state - description should still not be empty
+	role, err = client.Get(context.TODO(), id)
+	assert.NoError(t, err)
+	require.NotNil(t, role)
+	assert.Equal(t, "Initial description", role.Description, "description should not be cleared by omitted description update")
+	t.Logf("role after omitted description update: %+v\n", role)
+
+	// Clean up
+	err = client.Delete(context.TODO(), id)
+	assert.NoError(t, err)
 } 

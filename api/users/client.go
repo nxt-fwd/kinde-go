@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/nxt-fwd/kinde-go/internal/client"
+	"github.com/nxt-fwd/kinde-go/internal/phone"
 )
 
 type Client struct {
@@ -132,8 +133,8 @@ func (c *Client) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// AddIdentity adds a new identity to a user
-func (c *Client) AddIdentity(ctx context.Context, userID string, params AddIdentityParams) (*Identity, error) {
+// addIdentityRequest handles the common API request logic for adding identities
+func (c *Client) addIdentityRequest(ctx context.Context, userID string, params AddIdentityParams) (*Identity, error) {
 	endpoint := fmt.Sprintf("/api/v1/users/%s/identities", userID)
 	req, err := c.NewRequest(ctx, http.MethodPost, endpoint, nil, params)
 	if err != nil {
@@ -146,6 +147,34 @@ func (c *Client) AddIdentity(ctx context.Context, userID string, params AddIdent
 	}
 
 	return &response.Identity, nil
+}
+
+// AddPhoneIdentity adds a phone identity to a user using a full international format phone number
+func (c *Client) AddPhoneIdentity(ctx context.Context, userID string, fullPhoneNumber string) (*Identity, error) {
+	localNumber, countryID, err := phone.ParseNumber(fullPhoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("invalid phone number: %w", err)
+	}
+
+	return c.addIdentityRequest(ctx, userID, AddIdentityParams{
+		Type:           IdentityTypePhone,
+		Value:          localNumber,
+		PhoneCountryID: countryID,
+	})
+}
+
+// AddIdentity adds a new identity to a user
+func (c *Client) AddIdentity(ctx context.Context, userID string, params AddIdentityParams) (*Identity, error) {
+	if params.Type == IdentityTypePhone {
+		// For phone identities, always convert to international format and use AddPhoneIdentity
+		formattedNumber, err := phone.FormatNumber(params.Value, params.PhoneCountryID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid phone number components: %w", err)
+		}
+		return c.AddPhoneIdentity(ctx, userID, formattedNumber)
+	}
+
+	return c.addIdentityRequest(ctx, userID, params)
 }
 
 // GetIdentities gets all identities for a user

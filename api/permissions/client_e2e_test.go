@@ -46,3 +46,68 @@ func TestE2ECreateUpdateDelete(t *testing.T) {
 
 	t.Logf("deleted test permission: %s\n", res.ID)
 }
+
+func TestE2EDescriptionReset(t *testing.T) {
+	client := permissions.New(testutil.DefaultE2EClient(t))
+	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
+
+	// Create permission with a description
+	perm, err := client.Create(context.TODO(), permissions.CreateParams{
+		Name:        tempID,
+		Key:         tempID,
+		Description: "Initial description",
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, perm)
+	require.NotEmpty(t, perm.ID)
+	t.Logf("created test permission with description: %s\n", perm.ID)
+
+	// Get permission to verify initial state
+	perm, err = client.Search(context.TODO(), permissions.SearchParams{
+		Name: tempID,
+		Key:  tempID,
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, perm)
+	t.Logf("initial permission state: %+v\n", perm)
+
+	// Attempt to update with empty description
+	err = client.Update(context.TODO(), perm.ID, permissions.UpdateParams{
+		Name:        tempID + "-updated",
+		Key:         tempID + "-updated",
+		Description: "",  // Try to reset to empty
+	})
+	assert.NoError(t, err)
+	t.Log("attempted to update permission with empty description")
+
+	// Get permission to verify the state
+	perm, err = client.Search(context.TODO(), permissions.SearchParams{
+		Name: tempID + "-updated",
+		Key:  tempID + "-updated",
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, perm)
+	t.Logf("permission after update attempt: %+v\n", perm)
+
+	// Try updating with null/omitted description
+	err = client.Update(context.TODO(), perm.ID, permissions.UpdateParams{
+		Name: tempID + "-updated-again",
+		Key:  tempID + "-updated-again",
+		// Description field omitted
+	})
+	assert.NoError(t, err)
+	t.Log("attempted to update permission with omitted description")
+
+	// Get permission again to verify the final state
+	perm, err = client.Search(context.TODO(), permissions.SearchParams{
+		Name: tempID + "-updated-again",
+		Key:  tempID + "-updated-again",
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, perm)
+	t.Logf("permission after second update attempt: %+v\n", perm)
+
+	// Clean up
+	err = client.Delete(context.TODO(), perm.ID)
+	assert.NoError(t, err)
+}
