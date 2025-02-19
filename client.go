@@ -17,6 +17,7 @@ type Client struct {
 
 	APIs         *apis.Client
 	Applications *applications.Client
+	Identities   *identities.Client
 	Organizations *organizations.Client
 	Permissions  *permissions.Client
 	Roles        *roles.Client
@@ -27,12 +28,13 @@ func New(ctx context.Context, options *ClientOptions) Client {
 	client := client.New(ctx, options.ClientOptions)
 
 	return Client{
-		client:       client,
-		APIs:         apis.New(client),
-		Applications: applications.New(client),
+		client:        client,
+		APIs:          apis.New(client),
+		Applications:  applications.New(client),
+		Identities:    identities.New(client),
 		Organizations: organizations.New(client),
-		Permissions:  permissions.New(client),
-		Roles:        roles.New(client),
-		Users:        users.New(client),
+		Permissions:   permissions.New(client),
+		Roles:         roles.New(client),
+		Users:         users.New(client),
 	}
 }
