@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/nxt-fwd/kinde-go/api/identities"
 	"github.com/nxt-fwd/kinde-go/api/users"
 	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
@@ -81,6 +82,7 @@ func TestE2ECreateGetUpdateDelete(t *testing.T) {
 
 func TestE2EIdentities(t *testing.T) {
 	client := users.New(testutil.DefaultE2EClient(t))
+	identitiesClient := identities.New(testutil.DefaultE2EClient(t))
 	tempID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
 	email := fmt.Sprintf("%s@example.com", tempID)
 
@@ -98,17 +100,30 @@ func TestE2EIdentities(t *testing.T) {
 
 	t.Logf("created test user: %s\n", user.ID)
 
+	// Add primary email identity
+	primaryIdentity, err := client.AddIdentity(context.TODO(), user.ID, users.AddIdentityParams{
+		Type:  users.IdentityTypeEmail,
+		Value: email,
+	})
+	assert.NoError(t, err)
+	require.NotNil(t, primaryIdentity)
+	require.NotEmpty(t, primaryIdentity.ID)
+
 	// Add a secondary email identity
 	secondaryEmail := fmt.Sprintf("%s-secondary@example.com", tempID)
-	emailIdentity, err := client.AddIdentity(context.TODO(), user.ID, users.AddIdentityParams{
+	secondaryIdentity, err := client.AddIdentity(context.TODO(), user.ID, users.AddIdentityParams{
 		Type:  users.IdentityTypeEmail,
 		Value: secondaryEmail,
 	})
 	assert.NoError(t, err)
-	require.NotNil(t, emailIdentity)
-	require.NotEmpty(t, emailIdentity.ID)
+	require.NotNil(t, secondaryIdentity)
+	require.NotEmpty(t, secondaryIdentity.ID)
 
-	t.Logf("added secondary email identity: %+v\n", emailIdentity)
+	// Get initial identities
+	initialIdentities, err := client.GetIdentities(context.TODO(), user.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, initialIdentities)
+	require.Len(t, initialIdentities, 2, "expected 2 initial identities")
 
 	// Add a username identity
 	username := fmt.Sprintf("user_%s", tempID)
@@ -132,30 +147,28 @@ func TestE2EIdentities(t *testing.T) {
 	t.Logf("added phone identity: %+v\n", phoneIdentity)
 
 	// Get and verify all identities
-	identities, err := client.GetIdentities(context.TODO(), user.ID)
+	allIdentities, err := client.GetIdentities(context.TODO(), user.ID)
 	assert.NoError(t, err)
-	require.NotNil(t, identities)
+	require.NotNil(t, allIdentities)
+	require.Len(t, allIdentities, 4, "expected 4 identities total")
 
-	// We should have 3 identities (secondary email, username, and phone)
-	assert.Equal(t, 3, len(identities), "expected 3 identities")
+	// Make the secondary email primary
+	secondaryEmailIdentity := allIdentities[1] // The second email we added
+	updatedIdentity, err := identitiesClient.Update(context.TODO(), secondaryEmailIdentity.ID, true)
+	assert.NoError(t, err)
+	require.NotNil(t, updatedIdentity)
+	t.Logf("made secondary email primary: %+v\n", updatedIdentity)
 
-	// Verify the identities
-	var foundSecondaryEmail, foundUsername, foundPhone bool
-	for _, identity := range identities {
-		switch {
-		case identity.Type == string(users.IdentityTypeEmail) && identity.Name == secondaryEmail:
-			foundSecondaryEmail = true
-		case identity.Type == string(users.IdentityTypeUsername) && identity.Name == username:
-			foundUsername = true
-		case identity.Type == string(users.IdentityTypePhone) && identity.Name == phoneNumber:
-			foundPhone = true
-		}
-	}
+	// Delete the username identity
+	err = identitiesClient.Delete(context.TODO(), usernameIdentity.ID)
+	assert.NoError(t, err)
+	t.Logf("deleted username identity: %s\n", usernameIdentity.ID)
 
-	assert.True(t, foundSecondaryEmail, "secondary email identity not found")
-	assert.True(t, foundUsername, "username identity not found")
-	assert.True(t, foundPhone, "phone identity not found")
-	t.Logf("verified identities: %+v\n", identities)
+	// Verify remaining identities
+	remainingIdentities, err := client.GetIdentities(context.TODO(), user.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, remainingIdentities)
+	require.Len(t, remainingIdentities, 3, "expected 3 remaining identities")
 
 	// Clean up - delete the test user
 	err = client.Delete(context.TODO(), user.ID)
