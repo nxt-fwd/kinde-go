@@ -5,6 +5,7 @@ import (
 
 	"github.com/nxt-fwd/kinde-go/api/apis"
 	"github.com/nxt-fwd/kinde-go/api/applications"
+	"github.com/nxt-fwd/kinde-go/api/identities"
 	"github.com/nxt-fwd/kinde-go/api/organizations"
 	"github.com/nxt-fwd/kinde-go/api/permissions"
 	"github.com/nxt-fwd/kinde-go/api/roles"
