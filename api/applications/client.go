@@ -171,3 +171,74 @@ func (c *Client) Delete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+// GetConnections retrieves all connections enabled for a specific application
+func (c *Client) GetConnections(ctx context.Context, id string) ([]Connection, error) {
+	endpoint := fmt.Sprintf("/api/v1/applications/%s/connections", id)
+	req, err := c.NewRequest(ctx, http.MethodGet, endpoint, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		Code        string       `json:"code"`
+		Message     string       `json:"message"`
+		Connections []Connection `json:"connections"`
+	}
+	if err := c.DoRequest(req, &response); err != nil {
+		return nil, err
+	}
+
+	return response.Connections, nil
+}
+
+// Connection represents a connection in the context of an application
+type Connection struct {
+	ID          string      `json:"id"`
+	Name        string      `json:"name"`
+	DisplayName string      `json:"display_name"`
+	Strategy    string      `json:"strategy"`
+	Options     interface{} `json:"options,omitempty"`
+}
+
+// EnableConnection enables a connection for a specific application.
+//
+// applicationID is the identifier/client ID for the application.
+// connectionID is the identifier for the connection to enable.
+//
+// This endpoint creates an association between an application and a connection,
+// allowing users to authenticate to the application using the specified connection.
+func (c *Client) EnableConnection(ctx context.Context, applicationID, connectionID string) error {
+	endpoint := fmt.Sprintf("/api/v1/applications/%s/connections/%s", applicationID, connectionID)
+	req, err := c.NewRequest(ctx, http.MethodPost, endpoint, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	if err := c.DoRequest(req, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DisableConnection disables a connection for a specific application.
+//
+// applicationID is the identifier/client ID for the application.
+// connectionID is the identifier for the connection to disable.
+//
+// This endpoint removes the association between an application and a connection,
+// preventing users from using this connection method for the application.
+func (c *Client) DisableConnection(ctx context.Context, applicationID, connectionID string) error {
+	endpoint := fmt.Sprintf("/api/v1/applications/%s/connections/%s", applicationID, connectionID)
+	req, err := c.NewRequest(ctx, http.MethodDelete, endpoint, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	if err := c.DoRequest(req, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
