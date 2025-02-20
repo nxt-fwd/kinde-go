@@ -5,6 +5,7 @@ import (
 
 	"github.com/nxt-fwd/kinde-go/api/apis"
 	"github.com/nxt-fwd/kinde-go/api/applications"
+	"github.com/nxt-fwd/kinde-go/api/connections"
 	"github.com/nxt-fwd/kinde-go/api/identities"
 	"github.com/nxt-fwd/kinde-go/api/organizations"
 	"github.com/nxt-fwd/kinde-go/api/permissions"
@@ -16,13 +17,14 @@ import (
 type Client struct {
 	client client.Client
 
-	APIs         *apis.Client
-	Applications *applications.Client
-	Identities   *identities.Client
+	APIs          *apis.Client
+	Applications  *applications.Client
+	Connections   *connections.Client
+	Identities    *identities.Client
 	Organizations *organizations.Client
-	Permissions  *permissions.Client
-	Roles        *roles.Client
-	Users        *users.Client
+	Permissions   *permissions.Client
+	Roles         *roles.Client
+	Users         *users.Client
 }
 
 func New(ctx context.Context, options *ClientOptions) Client {
@@ -32,6 +34,7 @@ func New(ctx context.Context, options *ClientOptions) Client {
 		client:        client,
 		APIs:          apis.New(client),
 		Applications:  applications.New(client),
+		Connections:   connections.New(client),
 		Identities:    identities.New(client),
 		Organizations: organizations.New(client),
 		Permissions:   permissions.New(client),
