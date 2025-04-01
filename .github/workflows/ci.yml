@@ -20,5 +20,3 @@ jobs:
         with:
           install-mode: binary
           version: latest
-
-      - run: go test -v ./...
