@@ -46,14 +46,8 @@ The project includes a Makefile with common development tasks:
 # Show all available make targets
 make help
 
-# Run unit tests
-make test-unit
-
 # Run integration tests (requires valid API credentials)
 make test-e2e
-
-# Run all tests
-make test
 
 # Generate test coverage report
 make coverage
