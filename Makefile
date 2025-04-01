@@ -59,7 +59,7 @@ release:
 		echo "Error: VERSION must be in format v1.2.3"; \
 		exit 1; \
 	fi
-	@if [ "$$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then \
+	@if [ "$$(git rev-parse --abbrev-ref HEAD)" != "master" ]; then \
 		echo "Error: Releases must be created from the main branch"; \
 		exit 1; \
 	fi
@@ -76,4 +76,4 @@ release:
 	@git tag -a $(VERSION) -m "Release $(VERSION)"
 	@echo "Pushing tag to remote..."
 	@git push origin $(VERSION)
-	@echo "Release $(VERSION) created successfully!" 
+	@echo "Release $(VERSION) created successfully!"

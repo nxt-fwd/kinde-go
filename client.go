@@ -10,6 +10,7 @@ import (
 	"github.com/nxt-fwd/kinde-go/api/permissions"
 	"github.com/nxt-fwd/kinde-go/api/roles"
 	"github.com/nxt-fwd/kinde-go/api/users"
+	"github.com/nxt-fwd/kinde-go/api/connections"
 	"github.com/nxt-fwd/kinde-go/internal/client"
 )
 
@@ -23,6 +24,7 @@ type Client struct {
 	Permissions   *permissions.Client
 	Roles         *roles.Client
 	Users         *users.Client
+	Connections   *connections.Client
 }
 
 func New(ctx context.Context, options *ClientOptions) Client {
@@ -37,5 +39,6 @@ func New(ctx context.Context, options *ClientOptions) Client {
 		Permissions:   permissions.New(client),
 		Roles:         roles.New(client),
 		Users:         users.New(client),
+		Connections:   connections.New(client),
 	}
 }
