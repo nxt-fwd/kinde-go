@@ -45,7 +45,7 @@ func TestE2EGetConnections(t *testing.T) {
 	}
 
 	client := New(testutil.DefaultE2EClient(t))
-	
+
 	// First get all connections
 	connections, err := client.List(context.TODO())
 	assert.NoError(t, err)
@@ -54,7 +54,7 @@ func TestE2EGetConnections(t *testing.T) {
 	// Then get each connection individually to examine its structure
 	for _, conn := range connections {
 		t.Logf("Getting connection: %s (%s)", conn.Name, conn.ID)
-		
+
 		connection, err := client.Get(context.TODO(), conn.ID)
 		assert.NoError(t, err)
 		require.NotNil(t, connection)
@@ -87,7 +87,7 @@ func TestE2ECreateConnection(t *testing.T) {
 	}
 
 	client := New(testutil.DefaultE2EClient(t))
-	
+
 	// Create a unique name for the test connection
 	timestamp := time.Now().UnixMilli()
 	name := fmt.Sprintf("test-google-%d", timestamp)
@@ -156,7 +156,7 @@ func TestE2ECreateConnectionWithEmailTrust(t *testing.T) {
 	}
 
 	client := New(testutil.DefaultE2EClient(t))
-	
+
 	// Create a unique name for the test connection
 	timestamp := time.Now().UnixMilli()
 	name := fmt.Sprintf("test-google-trust-%d", timestamp)
@@ -164,9 +164,9 @@ func TestE2ECreateConnectionWithEmailTrust(t *testing.T) {
 
 	// Create a Google OAuth2 connection with email trust setting
 	options := map[string]interface{}{
-		"client_id":              "test-client-id",
-		"client_secret":          "test-client-secret",
-		"trust_email_verified":   true,
+		"client_id":            "test-client-id",
+		"client_secret":        "test-client-secret",
+		"trust_email_verified": true,
 	}
 
 	params := CreateParams{
@@ -227,7 +227,7 @@ func TestE2EDeleteConnection(t *testing.T) {
 	}
 
 	client := New(testutil.DefaultE2EClient(t))
-	
+
 	// Create a connection to delete
 	timestamp := time.Now().UnixMilli()
 	name := fmt.Sprintf("test-delete-%d", timestamp)
@@ -269,10 +269,10 @@ func TestE2EConnectionWithApplications(t *testing.T) {
 	ctx := context.TODO()
 	client := New(testutil.DefaultE2EClient(t))
 	appsClient := applications.New(testutil.DefaultE2EClient(t))
-	
+
 	// First create some test applications
 	timestamp := time.Now().UnixMilli()
-	
+
 	// Create first test application
 	app1Name := fmt.Sprintf("test-app1-%d", timestamp)
 	app1, err := appsClient.Create(ctx, applications.CreateParams{
@@ -281,7 +281,7 @@ func TestE2EConnectionWithApplications(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, app1)
-	
+
 	// Clean up first application after test
 	defer func() {
 		t.Logf("Cleaning up test application: %s", app1.ID)
@@ -297,7 +297,7 @@ func TestE2EConnectionWithApplications(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, app2)
-	
+
 	// Clean up second application after test
 	defer func() {
 		t.Logf("Cleaning up test application: %s", app2.ID)
@@ -318,7 +318,7 @@ func TestE2EConnectionWithApplications(t *testing.T) {
 		app1.ID,
 		app2.ID,
 	}
-	
+
 	params := CreateParams{
 		Name:                name,
 		DisplayName:         displayName,
@@ -363,7 +363,7 @@ func TestE2EConnectionWithApplications(t *testing.T) {
 	assert.NoError(t, err)
 	require.NotNil(t, app1Connections)
 	t.Logf("App1 Connections: %+v", app1Connections)
-	
+
 	var foundInApp1 bool
 	for _, conn := range app1Connections {
 		if conn.ID == connection.ID {
@@ -381,7 +381,7 @@ func TestE2EConnectionWithApplications(t *testing.T) {
 	assert.NoError(t, err)
 	require.NotNil(t, app2Connections)
 	t.Logf("App2 Connections: %+v", app2Connections)
-	
+
 	var foundInApp2 bool
 	for _, conn := range app2Connections {
 		if conn.ID == connection.ID {
@@ -402,7 +402,7 @@ func TestE2EConnectionWithApplications(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, app3)
-	
+
 	// Clean up third application after test
 	defer func() {
 		t.Logf("Cleaning up test application: %s", app3.ID)
@@ -463,7 +463,7 @@ func TestE2EConnectionWithApplications(t *testing.T) {
 	assert.NoError(t, err)
 	require.NotNil(t, app3Connections)
 	t.Logf("App3 Connections after update: %+v", app3Connections)
-	
+
 	var foundInApp3 bool
 	for _, conn := range app3Connections {
 		if conn.ID == connection.ID {
@@ -485,7 +485,7 @@ func TestE2EUpdateAndReplaceConnection(t *testing.T) {
 
 	ctx := context.TODO()
 	client := New(testutil.DefaultE2EClient(t))
-	
+
 	// Create a test connection
 	timestamp := time.Now().UnixMilli()
 	name := fmt.Sprintf("test-conn-%d", timestamp)
@@ -635,7 +635,7 @@ func TestE2EConnectionsOrder(t *testing.T) {
 
 	// Check if the connections maintain creation order
 	for i := 1; i < len(foundIndexes); i++ {
-		assert.Greater(t, foundIndexes[i], foundIndexes[i-1], 
+		assert.Greater(t, foundIndexes[i], foundIndexes[i-1],
 			"Connections should maintain creation order (newer connections appear later)")
 	}
-} 
+}

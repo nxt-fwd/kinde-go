@@ -18,11 +18,11 @@ func New(client client.Client) *Client {
 
 // CreateParams represents the parameters for creating a new connection
 type CreateParams struct {
-	Name                string      `json:"name"`                   // Internal name of the connection
-	DisplayName         string      `json:"display_name"`          // Public facing name
-	Strategy           Strategy    `json:"strategy"`              // Identity provider identifier
+	Name                string      `json:"name"`                           // Internal name of the connection
+	DisplayName         string      `json:"display_name"`                   // Public facing name
+	Strategy            Strategy    `json:"strategy"`                       // Identity provider identifier
 	EnabledApplications []string    `json:"enabled_applications,omitempty"` // Client IDs of enabled applications
-	Options            interface{} `json:"options,omitempty"`     // Connection-specific options
+	Options             interface{} `json:"options,omitempty"`              // Connection-specific options
 }
 
 // CreateResponse represents the response from the create connection endpoint
@@ -49,12 +49,12 @@ type GetResponse struct {
 
 // Connection represents a connection in Kinde
 type Connection struct {
-	ID                 string      `json:"id"`
-	Name               string      `json:"name"`
-	DisplayName        string      `json:"display_name"`
-	Strategy           string      `json:"strategy"`
+	ID                  string      `json:"id"`
+	Name                string      `json:"name"`
+	DisplayName         string      `json:"display_name"`
+	Strategy            string      `json:"strategy"`
 	EnabledApplications []string    `json:"enabled_applications,omitempty"`
-	Options            interface{} `json:"options,omitempty"`
+	Options             interface{} `json:"options,omitempty"`
 }
 
 // UpdateParams represents the parameters for updating a connection
@@ -62,7 +62,7 @@ type UpdateParams struct {
 	Name                string      `json:"name,omitempty"`
 	DisplayName         string      `json:"display_name,omitempty"`
 	EnabledApplications []string    `json:"enabled_applications,omitempty"`
-	Options            interface{} `json:"options,omitempty"`
+	Options             interface{} `json:"options,omitempty"`
 }
 
 // Create creates a new connection
@@ -138,10 +138,10 @@ func (c *Client) Update(ctx context.Context, id string, params UpdateParams) (*C
 
 // ReplaceParams represents the parameters for replacing a connection
 type ReplaceParams struct {
-	Name                string      `json:"name"`                   // Internal name of the connection (required)
-	DisplayName         string      `json:"display_name"`          // Public facing name (required)
+	Name                string      `json:"name"`                           // Internal name of the connection (required)
+	DisplayName         string      `json:"display_name"`                   // Public facing name (required)
 	EnabledApplications []string    `json:"enabled_applications,omitempty"` // Client IDs of enabled applications
-	Options            interface{} `json:"options"`               // Connection-specific options (required)
+	Options             interface{} `json:"options"`                        // Connection-specific options (required)
 }
 
 // Replace replaces all fields of a connection by ID.
@@ -185,4 +185,4 @@ func (c *Client) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
-} 
+}

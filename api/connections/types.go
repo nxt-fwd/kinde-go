@@ -6,10 +6,10 @@ type Strategy string
 const (
 	// Built-in authentication strategies
 	StrategyEmailPassword    Strategy = "email:password"    // Standard email/password authentication
-	StrategyEmailOTP        Strategy = "email:otp"         // Email with one-time password
-	StrategyPhoneOTP        Strategy = "phone:otp"         // Phone number with one-time password
+	StrategyEmailOTP         Strategy = "email:otp"         // Email with one-time password
+	StrategyPhoneOTP         Strategy = "phone:otp"         // Phone number with one-time password
 	StrategyUsernamePassword Strategy = "username:password" // Username/password authentication
-	StrategyUsernameOTP     Strategy = "username:otp"      // Username with one-time password
+	StrategyUsernameOTP      Strategy = "username:otp"      // Username with one-time password
 
 	// OAuth2 strategies
 	StrategyOAuth2Apple     Strategy = "oauth2:apple"
@@ -47,8 +47,8 @@ type SocialConnectionOptions struct {
 
 // AzureADConnectionOptions represents options for Azure AD connections
 type AzureADConnectionOptions struct {
-	ClientID                      string   `json:"client_id"`
-	ClientSecret                  string   `json:"client_secret"`
+	ClientID                     string   `json:"client_id"`
+	ClientSecret                 string   `json:"client_secret"`
 	HomeRealmDomains             []string `json:"home_realm_domains"`
 	EntraIDDomain                string   `json:"entra_id_domain"`
 	IsUseCommonEndpoint          bool     `json:"is_use_common_endpoint"`
@@ -59,14 +59,14 @@ type AzureADConnectionOptions struct {
 
 // SAMLConnectionOptions represents options for SAML connections
 type SAMLConnectionOptions struct {
-	HomeRealmDomains       []string `json:"home_realm_domains"`
+	HomeRealmDomains      []string `json:"home_realm_domains"`
 	SAMLEntityID          string   `json:"saml_entity_id"`
-	SAMLASSURL           string   `json:"saml_acs_url"`
+	SAMLASSURL            string   `json:"saml_acs_url"`
 	SAMLIdpMetadataURL    string   `json:"saml_idp_metadata_url"`
 	SAMLEmailKeyAttr      string   `json:"saml_email_key_attr"`
 	SAMLFirstNameKeyAttr  string   `json:"saml_first_name_key_attr"`
 	SAMLLastNameKeyAttr   string   `json:"saml_last_name_key_attr"`
 	IsCreateMissingUser   bool     `json:"is_create_missing_user"`
-	SAMLSigningCert      string   `json:"saml_signing_certificate"`
+	SAMLSigningCert       string   `json:"saml_signing_certificate"`
 	SAMLSigningPrivateKey string   `json:"saml_signing_private_key"`
-} 
+}

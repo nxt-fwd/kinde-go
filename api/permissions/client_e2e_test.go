@@ -75,7 +75,7 @@ func TestE2EDescriptionReset(t *testing.T) {
 	err = client.Update(context.TODO(), perm.ID, permissions.UpdateParams{
 		Name:        tempID + "-updated",
 		Key:         tempID + "-updated",
-		Description: "",  // Try to reset to empty
+		Description: "", // Try to reset to empty
 	})
 	assert.NoError(t, err)
 	t.Log("attempted to update permission with empty description")

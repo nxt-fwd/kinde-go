@@ -3,3 +3,5 @@ e2e.json
 .DS_Store
 dist/*
 kinde-go
+coverage.out
+coverage.html

@@ -57,4 +57,4 @@ func (o *ClientOptions) WithScopes(scopes []string) *ClientOptions {
 func (o *ClientOptions) WithLogger(logger logger.Logger) *ClientOptions {
 	o.ClientOptions.WithLogger(logger)
 	return o
-} 
+}

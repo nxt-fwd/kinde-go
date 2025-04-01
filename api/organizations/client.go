@@ -183,4 +183,4 @@ func (c *Client) RemoveUserRole(ctx context.Context, orgCode string, userID stri
 	}
 
 	return nil
-} 
+}

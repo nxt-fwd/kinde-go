@@ -99,10 +99,10 @@ func (c *Client) Update(ctx context.Context, id string, params UpdateParams) (*U
 
 	// Convert UpdateResponse to User
 	user := &User{
-		ID:           response.ID,
-		FirstName:    response.GivenName,
-		LastName:     response.FamilyName,
-		IsSuspended:  response.IsSuspended,
+		ID:          response.ID,
+		FirstName:   response.GivenName,
+		LastName:    response.FamilyName,
+		IsSuspended: response.IsSuspended,
 	}
 	if response.Email != nil {
 		user.PreferredEmail = *response.Email
@@ -195,4 +195,4 @@ func (c *Client) GetIdentities(ctx context.Context, userID string) ([]Identity, 
 	}
 
 	return response.Identities, nil
-} 
+}

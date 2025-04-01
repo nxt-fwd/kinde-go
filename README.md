@@ -36,6 +36,43 @@ func main() {
 }
 ```
 
+## development
+
+### testing and linting
+
+The project includes a Makefile with common development tasks:
+
+```bash
+# Show all available make targets
+make help
+
+# Run unit tests
+make test-unit
+
+# Run integration tests (requires valid API credentials)
+make test-e2e
+
+# Run all tests
+make test
+
+# Generate test coverage report
+make coverage
+
+# Run linters
+make lint
+
+# Format code
+make fmt
+
+# Run tests and linters
+make check
+
+# Install development tools (e.g., golangci-lint)
+make tools
+```
+
+To run integration tests, ensure your `.env` file is properly configured with valid Kinde API credentials.
+
 ## todo
 
 - pagination
