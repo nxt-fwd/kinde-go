@@ -335,8 +335,8 @@ func TestE2EProfileReset(t *testing.T) {
 
 	// Attempt to reset first and last name to null
 	updateParams := users.UpdateParams{
-		GivenName:  "",  // Try to reset to empty
-		FamilyName: "",  // Try to reset to empty
+		GivenName:  "", // Try to reset to empty
+		FamilyName: "", // Try to reset to empty
 	}
 	user, err = client.Update(context.TODO(), id, updateParams)
 	assert.NoError(t, err)

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/nxt-fwd/kinde-go/api/applications"
+	"github.com/nxt-fwd/kinde-go/api/connections"
 	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -77,12 +78,12 @@ func TestE2EApplicationTypes(t *testing.T) {
 	baseID := fmt.Sprintf("test-%d", time.Now().UnixMilli())
 
 	testCases := []struct {
-		name string
-		type_ applications.Type
+		name             string
+		type_            applications.Type
 		validateSettings func(t *testing.T, app *applications.Application)
 	}{
 		{
-			name: "Regular Web Application",
+			name:  "Regular Web Application",
 			type_: applications.TypeRegular,
 			validateSettings: func(t *testing.T, app *applications.Application) {
 				assert.Equal(t, applications.TypeRegular, app.Type)
@@ -90,7 +91,7 @@ func TestE2EApplicationTypes(t *testing.T) {
 			},
 		},
 		{
-			name: "Single Page Application",
+			name:  "Single Page Application",
 			type_: applications.TypeSinglePageApplication,
 			validateSettings: func(t *testing.T, app *applications.Application) {
 				assert.Equal(t, applications.TypeSinglePageApplication, app.Type)
@@ -98,7 +99,7 @@ func TestE2EApplicationTypes(t *testing.T) {
 			},
 		},
 		{
-			name: "Machine to Machine Application",
+			name:  "Machine to Machine Application",
 			type_: applications.TypeMachineToMachine,
 			validateSettings: func(t *testing.T, app *applications.Application) {
 				assert.Equal(t, applications.TypeMachineToMachine, app.Type)
@@ -110,7 +111,7 @@ func TestE2EApplicationTypes(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			appName := fmt.Sprintf("%s-%s", baseID, tc.type_)
-			
+
 			// Create application
 			app, err := client.Create(context.TODO(), applications.CreateParams{
 				Name: appName,
@@ -131,10 +132,10 @@ func TestE2EApplicationTypes(t *testing.T) {
 
 			// Test type-specific updates
 			updateParams := applications.UpdateParams{
-				Name: appName + "-updated",
-				LoginURI: "https://example.com/login",
-				HomepageURI: "https://example.com",
-				LogoutURIs: []string{"https://example.com/logout"},
+				Name:         appName + "-updated",
+				LoginURI:     "https://example.com/login",
+				HomepageURI:  "https://example.com",
+				LogoutURIs:   []string{"https://example.com/logout"},
 				RedirectURIs: []string{"https://example.com/callback"},
 			}
 
@@ -157,4 +158,89 @@ func TestE2EApplicationTypes(t *testing.T) {
 			t.Logf("deleted test application: %s", app.ID)
 		})
 	}
+}
+
+// TestE2EEnableDisableConnection tests enabling and disabling connections for an application
+func TestE2EEnableDisableConnection(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping e2e test")
+	}
+
+	ctx := context.TODO()
+	client := applications.New(testutil.DefaultE2EClient(t))
+	connectionsClient := connections.New(testutil.DefaultE2EClient(t))
+
+	// Create a test application
+	timestamp := time.Now().UnixMilli()
+	appName := fmt.Sprintf("test-app-%d", timestamp)
+	app, err := client.Create(ctx, applications.CreateParams{
+		Name: appName,
+		Type: applications.TypeRegular,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, app)
+
+	// Clean up application after test
+	defer func() {
+		t.Logf("Cleaning up test application: %s", app.ID)
+		err := client.Delete(ctx, app.ID)
+		assert.NoError(t, err)
+	}()
+
+	// Create a test connection
+	connName := fmt.Sprintf("test-conn-%d", timestamp)
+	conn, err := connectionsClient.Create(ctx, connections.CreateParams{
+		Name:        connName,
+		DisplayName: connName,
+		Strategy:    connections.StrategyOAuth2Google,
+		Options: &connections.SocialConnectionOptions{
+			ClientID:     "test-client-id",
+			ClientSecret: "test-client-secret",
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, conn)
+
+	// Clean up connection after test
+	defer func() {
+		t.Logf("Cleaning up test connection: %s", conn.ID)
+		err := connectionsClient.Delete(ctx, conn.ID)
+		assert.NoError(t, err)
+	}()
+
+	// Enable the connection for the application
+	err = client.EnableConnection(ctx, app.ID, conn.ID)
+	assert.NoError(t, err)
+
+	// Verify connection is enabled by getting application connections
+	appConns, err := client.GetConnections(ctx, app.ID)
+	assert.NoError(t, err)
+	require.NotNil(t, appConns)
+
+	var found bool
+	for _, c := range appConns {
+		if c.ID == conn.ID {
+			found = true
+			assert.Equal(t, connName, c.Name)
+			assert.Equal(t, string(connections.StrategyOAuth2Google), c.Strategy)
+			break
+		}
+	}
+	assert.True(t, found, "Connection should be found in application's connections")
+
+	// Disable the connection
+	err = client.DisableConnection(ctx, app.ID, conn.ID)
+	assert.NoError(t, err)
+
+	// Verify connection is disabled
+	appConns, err = client.GetConnections(ctx, app.ID)
+	assert.NoError(t, err)
+	found = false
+	for _, c := range appConns {
+		if c.ID == conn.ID {
+			found = true
+			break
+		}
+	}
+	assert.False(t, found, "Connection should not be found in application's connections after disabling")
 }

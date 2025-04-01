@@ -102,7 +102,7 @@ func (s *TestServer) Handle(t *testing.T, method, path string, handler TestServe
 		t.Logf("[TestServer.Handle] %s %s request body: %s\n", r.Method, r.URL.Path, string(raw))
 
 		status, response := handler(r.Header, r.URL.Query(), raw)
-		t.Logf("[TestServer.Handle] %s %s response: %d - %s\n", r.Method, r.URL.Path, status, string(response))
+		t.Logf("[TestServer.Handle] %s %s response: %d - %s\n", r.Method, r.URL.Path, status, response)
 
 		w.WriteHeader(status)
 		fmt.Fprint(w, response)

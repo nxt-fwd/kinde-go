@@ -47,7 +47,7 @@ func FormatNumber(localNumber, countryID string) (string, error) {
 
 	// Format the number in international format
 	formatted := phonenumbers.Format(num, phonenumbers.INTERNATIONAL)
-	
+
 	// Remove any spaces and hyphens, ensure it starts with +
 	formatted = strings.ReplaceAll(formatted, " ", "")
 	formatted = strings.ReplaceAll(formatted, "-", "")
@@ -56,4 +56,4 @@ func FormatNumber(localNumber, countryID string) (string, error) {
 	}
 
 	return formatted, nil
-} 
+}

@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/nxt-fwd/kinde-go/api/organizations"
-	"github.com/nxt-fwd/kinde-go/api/users"
 	"github.com/nxt-fwd/kinde-go/api/roles"
+	"github.com/nxt-fwd/kinde-go/api/users"
 	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -260,4 +260,4 @@ func TestE2EOrganizationSettings(t *testing.T) {
 	err = client.Delete(context.TODO(), code)
 	assert.NoError(t, err)
 	t.Log("deleted test organization")
-} 
+}

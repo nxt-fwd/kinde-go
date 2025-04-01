@@ -1,3 +1,6 @@
+//go:build e2e
+// +build e2e
+
 package identities
 
 import (
@@ -82,4 +85,4 @@ func TestIdentitiesE2E(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, remainingIdentities, 1)
 	assert.Equal(t, identities[1].ID, remainingIdentities[0].ID)
-} 
+}

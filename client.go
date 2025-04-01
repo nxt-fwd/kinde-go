@@ -16,13 +16,13 @@ import (
 type Client struct {
 	client client.Client
 
-	APIs         *apis.Client
-	Applications *applications.Client
-	Identities   *identities.Client
+	APIs          *apis.Client
+	Applications  *applications.Client
+	Identities    *identities.Client
 	Organizations *organizations.Client
-	Permissions  *permissions.Client
-	Roles        *roles.Client
-	Users        *users.Client
+	Permissions   *permissions.Client
+	Roles         *roles.Client
+	Users         *users.Client
 }
 
 func New(ctx context.Context, options *ClientOptions) Client {

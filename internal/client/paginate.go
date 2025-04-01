@@ -45,7 +45,7 @@ func (p *Paginator[T, P]) Next(ctx context.Context) ([]T, error) {
 	query := url.Values{}
 
 	if p.options.Sort != "" {
-		query.Set("sort", string(p.options.Sort))
+		query.Set("sort", p.options.Sort)
 	}
 
 	if p.options.PageSize > 0 {

@@ -1,12 +1,12 @@
 package roles
 
 type Role struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Key         string   `json:"key"`
-	Description string   `json:"description,omitempty"`
-	Permissions []string `json:"permissions,omitempty"`
-	IsDefaultRole bool   `json:"is_default_role"`
+	ID            string   `json:"id"`
+	Name          string   `json:"name"`
+	Key           string   `json:"key"`
+	Description   string   `json:"description,omitempty"`
+	Permissions   []string `json:"permissions,omitempty"`
+	IsDefaultRole bool     `json:"is_default_role"`
 }
 
 type ListResponse struct {
@@ -75,4 +75,4 @@ type ListPermissionsResponse struct {
 	Message     string       `json:"message"`
 	NextToken   string       `json:"next_token"`
 	Permissions []Permission `json:"permissions,omitempty"`
-} 
+}

@@ -45,11 +45,11 @@ func (c *Client) Get(ctx context.Context, identityID string) (*users.Identity, e
 // Update updates whether an identity is primary
 func (c *Client) Update(ctx context.Context, identityID string, isPrimary bool) (*users.Identity, error) {
 	endpoint := fmt.Sprintf("/api/v1/identities/%s", identityID)
-	
+
 	req := UpdateIdentityRequest{
 		IsPrimary: isPrimary,
 	}
-	
+
 	httpReq, err := c.c.NewRequest(ctx, http.MethodPatch, endpoint, nil, req)
 	if err != nil {
 		return nil, err
@@ -84,4 +84,4 @@ func (c *Client) Delete(ctx context.Context, identityID string) error {
 	}
 
 	return nil
-} 
+}

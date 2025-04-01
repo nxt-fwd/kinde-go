@@ -76,15 +76,15 @@ func TestIncompleteCredentials(t *testing.T) {
 		expectError  bool
 	}{
 		{
-			name:         "Missing All Credentials",
-			expectError:  true,
+			name:        "Missing All Credentials",
+			expectError: true,
 		},
 		{
-			name:         "Missing Client Secret",
-			domain:       "https://test.kinde.com",
-			audience:     "https://test.kinde.com/api",
-			clientID:     "test-client-id",
-			expectError:  true,
+			name:        "Missing Client Secret",
+			domain:      "https://test.kinde.com",
+			audience:    "https://test.kinde.com/api",
+			clientID:    "test-client-id",
+			expectError: true,
 		},
 		{
 			name:         "Missing Client ID",

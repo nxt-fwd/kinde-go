@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
 	"github.com/nxt-fwd/kinde-go/internal/client"
 )
 
@@ -24,8 +25,8 @@ func (c *Client) List(ctx context.Context) ([]Role, error) {
 	}
 
 	var response ListResponse
-	if err := c.DoRequest(req, &response); err != nil {
-		return nil, err
+	if reqErr := c.DoRequest(req, &response); reqErr != nil {
+		return nil, reqErr
 	}
 
 	return response.Roles, nil
@@ -40,8 +41,8 @@ func (c *Client) Create(ctx context.Context, params CreateParams) (*Role, error)
 	}
 
 	var response CreateResponse
-	if err := c.DoRequest(req, &response); err != nil {
-		return nil, err
+	if reqErr := c.DoRequest(req, &response); reqErr != nil {
+		return nil, reqErr
 	}
 
 	return &response.Role, nil
@@ -60,8 +61,8 @@ func (c *Client) Get(ctx context.Context, id string) (*Role, error) {
 		Message string `json:"message"`
 		Role    Role   `json:"role"`
 	}
-	if err := c.DoRequest(req, &response); err != nil {
-		return nil, err
+	if reqErr := c.DoRequest(req, &response); reqErr != nil {
+		return nil, reqErr
 	}
 
 	// Get role permissions
@@ -88,8 +89,8 @@ func (c *Client) GetRolePermissions(ctx context.Context, roleID string) ([]strin
 		NextToken   string       `json:"next_token"`
 		Permissions []Permission `json:"permissions"`
 	}
-	if err := c.DoRequest(req, &response); err != nil {
-		return nil, err
+	if reqErr := c.DoRequest(req, &response); reqErr != nil {
+		return nil, reqErr
 	}
 
 	// Convert Permission objects to permission IDs
@@ -114,8 +115,8 @@ func (c *Client) Update(ctx context.Context, id string, params UpdateParams) (*R
 	}
 
 	var response UpdateResponse
-	if err := c.DoRequest(req, &response); err != nil {
-		return nil, err
+	if reqErr := c.DoRequest(req, &response); reqErr != nil {
+		return nil, reqErr
 	}
 
 	return &response.Role, nil
@@ -130,8 +131,8 @@ func (c *Client) Delete(ctx context.Context, id string) error {
 	}
 
 	var response DeleteResponse
-	if err := c.DoRequest(req, &response); err != nil {
-		return err
+	if reqErr := c.DoRequest(req, &response); reqErr != nil {
+		return reqErr
 	}
 
 	return nil
@@ -146,8 +147,8 @@ func (c *Client) UpdatePermissions(ctx context.Context, id string, params Update
 	}
 
 	var response UpdatePermissionsResponse
-	if err := c.DoRequest(req, &response); err != nil {
-		return nil, err
+	if reqErr := c.DoRequest(req, &response); reqErr != nil {
+		return nil, reqErr
 	}
 
 	return &response, nil
@@ -162,8 +163,8 @@ func (c *Client) RemovePermission(ctx context.Context, roleID string, permission
 	}
 
 	var response RemovePermissionResponse
-	if err := c.DoRequest(req, &response); err != nil {
-		return err
+	if reqErr := c.DoRequest(req, &response); reqErr != nil {
+		return reqErr
 	}
 
 	return nil
@@ -178,9 +179,9 @@ func (c *Client) ListPermissions(ctx context.Context) ([]Permission, error) {
 	}
 
 	var response ListPermissionsResponse
-	if err := c.DoRequest(req, &response); err != nil {
-		return nil, err
+	if reqErr := c.DoRequest(req, &response); reqErr != nil {
+		return nil, reqErr
 	}
 
 	return response.Permissions, nil
-} 
+}

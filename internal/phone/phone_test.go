@@ -8,35 +8,35 @@ import (
 
 func TestParseNumber(t *testing.T) {
 	tests := []struct {
-		name           string
+		name          string
 		input         string
 		wantLocal     string
 		wantCountryID string
 		wantErr       bool
 	}{
 		{
-			name:           "Armenian number",
+			name:          "Armenian number",
 			input:         "+37455251234",
 			wantLocal:     "55251234",
 			wantCountryID: "am",
 			wantErr:       false,
 		},
 		{
-			name:           "Australian number",
+			name:          "Australian number",
 			input:         "+61412345678",
 			wantLocal:     "412345678",
 			wantCountryID: "au",
 			wantErr:       false,
 		},
 		{
-			name:           "US number",
+			name:          "US number",
 			input:         "+12025550123",
 			wantLocal:     "2025550123",
 			wantCountryID: "us",
 			wantErr:       false,
 		},
 		{
-			name:           "Invalid number",
+			name:          "Invalid number",
 			input:         "+1234",
 			wantLocal:     "",
 			wantCountryID: "",
@@ -107,4 +107,4 @@ func TestFormatNumber(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
-} 
+}

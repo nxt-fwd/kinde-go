@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nxt-fwd/kinde-go/api/roles"
 	"github.com/nxt-fwd/kinde-go/api/permissions"
+	"github.com/nxt-fwd/kinde-go/api/roles"
 	"github.com/nxt-fwd/kinde-go/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,11 +33,11 @@ func TestE2ECreateGetUpdateDelete(t *testing.T) {
 
 	// Create test permissions first
 	permClient := permissions.New(testutil.DefaultE2EClient(t))
-	
+
 	// Create read permission
 	readPerm, err := permClient.Create(context.TODO(), permissions.CreateParams{
-		Name: "Test Read Permission",
-		Key:  "read:users",
+		Name:        "Test Read Permission",
+		Key:         "read:users",
 		Description: "Test permission for reading users",
 	})
 	assert.NoError(t, err)
@@ -46,8 +46,8 @@ func TestE2ECreateGetUpdateDelete(t *testing.T) {
 
 	// Create write permission
 	writePerm, err := permClient.Create(context.TODO(), permissions.CreateParams{
-		Name: "Test Write Permission",
-		Key:  "write:users",
+		Name:        "Test Write Permission",
+		Key:         "write:users",
 		Description: "Test permission for writing users",
 	})
 	assert.NoError(t, err)
@@ -110,12 +110,12 @@ func TestE2EPermissions(t *testing.T) {
 
 	// Create test permissions first
 	permClient := permissions.New(testutil.DefaultE2EClient(t))
-	
+
 	// Create read permission
 	readPermKey := "users:read"
 	readPerm, err := permClient.Create(context.TODO(), permissions.CreateParams{
-		Name: "Test Read Permission",
-		Key:  readPermKey,
+		Name:        "Test Read Permission",
+		Key:         readPermKey,
 		Description: "Test permission for reading users",
 	})
 	assert.NoError(t, err)
@@ -125,8 +125,8 @@ func TestE2EPermissions(t *testing.T) {
 	// Create write permission
 	writePermKey := "users:write"
 	writePerm, err := permClient.Create(context.TODO(), permissions.CreateParams{
-		Name: "Test Write Permission",
-		Key:  writePermKey,
+		Name:        "Test Write Permission",
+		Key:         writePermKey,
 		Description: "Test permission for writing users",
 	})
 	assert.NoError(t, err)
@@ -155,9 +155,9 @@ func TestE2EPermissions(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	require.NotNil(t, updateResponse)
-	t.Logf("added permissions: %v (response: added=%v, removed=%v)\n", 
-		[]string{readPerm.ID, writePerm.ID}, 
-		updateResponse.PermissionsAdded, 
+	t.Logf("added permissions: %v (response: added=%v, removed=%v)\n",
+		[]string{readPerm.ID, writePerm.ID},
+		updateResponse.PermissionsAdded,
 		updateResponse.PermissionsRemoved,
 	)
 
@@ -195,12 +195,12 @@ func TestE2EBulkPermissionChanges(t *testing.T) {
 
 	// Create test permissions first
 	permClient := permissions.New(testutil.DefaultE2EClient(t))
-	
+
 	// Create first permission
 	perm1Key := "users:read"
 	perm1, err := permClient.Create(context.TODO(), permissions.CreateParams{
-		Name: "Test Read Permission",
-		Key:  perm1Key,
+		Name:        "Test Read Permission",
+		Key:         perm1Key,
 		Description: "Test permission for reading users",
 	})
 	assert.NoError(t, err)
@@ -210,8 +210,8 @@ func TestE2EBulkPermissionChanges(t *testing.T) {
 	// Create second permission
 	perm2Key := "users:write"
 	perm2, err := permClient.Create(context.TODO(), permissions.CreateParams{
-		Name: "Test Write Permission",
-		Key:  perm2Key,
+		Name:        "Test Write Permission",
+		Key:         perm2Key,
 		Description: "Test permission for writing users",
 	})
 	assert.NoError(t, err)
@@ -221,8 +221,8 @@ func TestE2EBulkPermissionChanges(t *testing.T) {
 	// Create third permission
 	perm3Key := "users:delete"
 	perm3, err := permClient.Create(context.TODO(), permissions.CreateParams{
-		Name: "Test Delete Permission",
-		Key:  perm3Key,
+		Name:        "Test Delete Permission",
+		Key:         perm3Key,
 		Description: "Test permission for deleting users",
 	})
 	assert.NoError(t, err)
@@ -250,9 +250,9 @@ func TestE2EBulkPermissionChanges(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	require.NotNil(t, updateResponse)
-	t.Logf("added first permission: %v (response: added=%v, removed=%v)\n", 
-		perm1.ID, 
-		updateResponse.PermissionsAdded, 
+	t.Logf("added first permission: %v (response: added=%v, removed=%v)\n",
+		perm1.ID,
+		updateResponse.PermissionsAdded,
 		updateResponse.PermissionsRemoved,
 	)
 
@@ -266,8 +266,8 @@ func TestE2EBulkPermissionChanges(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	require.NotNil(t, updateResponse)
-	t.Logf("bulk update response: added=%v, removed=%v\n", 
-		updateResponse.PermissionsAdded, 
+	t.Logf("bulk update response: added=%v, removed=%v\n",
+		updateResponse.PermissionsAdded,
 		updateResponse.PermissionsRemoved,
 	)
 
@@ -352,8 +352,8 @@ func TestE2EBulkPermissionOperations(t *testing.T) {
 	mixedResponse, err := client.UpdatePermissions(context.TODO(), role.ID, roles.UpdatePermissionsParams{
 		Permissions: []roles.UpdatePermissionItem{
 			{ID: createdPerms[0], Operation: "delete"}, // Remove first permission
-			{ID: createdPerms[3]}, // Add new permission
-			{ID: createdPerms[4]}, // Add new permission
+			{ID: createdPerms[3]},                      // Add new permission
+			{ID: createdPerms[4]},                      // Add new permission
 		},
 	})
 	assert.NoError(t, err)
@@ -409,7 +409,7 @@ func TestE2EDescriptionReset(t *testing.T) {
 	// Attempt to update with empty description
 	updateParams := roles.UpdateParams{
 		Name:        tempID + "-updated",
-		Description: "",  // Try to reset to empty
+		Description: "", // Try to reset to empty
 	}
 	role, err = client.Update(context.TODO(), id, updateParams)
 	assert.NoError(t, err)
@@ -443,4 +443,4 @@ func TestE2EDescriptionReset(t *testing.T) {
 	// Clean up
 	err = client.Delete(context.TODO(), id)
 	assert.NoError(t, err)
-} 
+}

@@ -46,10 +46,10 @@ func New(ctx context.Context, options *ClientOptions) Client {
 	}
 
 	client := &clientImpl{
-		client: &http.Client{Transport: transport},
-		domain: options.Domain,
+		client:  &http.Client{Transport: transport},
+		domain:  options.Domain,
 		options: options,
-		logger: options.Logger,
+		logger:  options.Logger,
 	}
 
 	return client
@@ -75,9 +75,9 @@ func (c *clientImpl) NewRequest(ctx context.Context, method string, path string,
 	// Create request
 	var buf io.Reader
 	if body != nil {
-		raw, err := json.Marshal(body)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal request body: %w", err)
+		raw, jsonErr := json.Marshal(body)
+		if jsonErr != nil {
+			return nil, fmt.Errorf("failed to marshal request body: %w", jsonErr)
 		}
 
 		buf = bytes.NewBuffer(raw)
